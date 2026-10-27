@@ -1,0 +1,47 @@
+habitat-lab
+data/humanoids
+data/sample
+data/scene_datasets
+ckpt_qwen5
+__pycache__/
+*.pyc
+__pycache__
+trackvla_vis/
+
+outputs/
+logs/
+ckpt*/
+
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+*.npy
+*.npz
+
+# Local runtime environments and package caches
+.env/
+.local/
+# Shared external weights are referenced, never vendored
+models
+.venv/
+.venv-*/
+hf_downloads/
+*.egg-info/
+# Generated simulator data and local-only session notes
+data/benchmark/
+data/local_demo/
+data/navmeshes/
+data/hab3_bench_assets
+sim_data/eval/
+results/
+.local-config/
+.env.local
+.env.*
+docs/CLEANUP.md
+docs/OMTRACKVLA_FOCUSED_COMPUTE_PLAN.md
+docs/RIDGEBACK_OMTRACK_LIVE.md
+# Credentials and private material
+*.pem
+*.key

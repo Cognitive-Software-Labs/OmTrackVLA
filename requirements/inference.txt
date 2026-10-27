@@ -1,0 +1,12 @@
+# Tested x86_64 CUDA stack; install torch/torchvision with setup.sh first.
+numpy==1.23.5; python_version < '3.12'
+numpy==1.26.4; python_version >= '3.12'
+scipy==1.13.1
+Pillow==10.3.0
+opencv-python==4.11.0.86
+transformers==4.57.6
+accelerate==1.10.1
+huggingface-hub==0.36.2
+safetensors==0.7.0
+sentencepiece==0.2.2
+timm==1.0.19

@@ -1,0 +1,5 @@
+-r inference.txt
+ultralytics==8.4.159
+ultralytics-thop==2.1.6
+lap==0.5.13
+polars==1.36.1

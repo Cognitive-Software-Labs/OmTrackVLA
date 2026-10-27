@@ -1,0 +1,5 @@
+-r training.txt
+numba==0.60.0; python_version < '3.12'
+numpy-quaternion==2023.0.4; python_version < '3.12'
+pybullet==3.2.7
+-e ./habitat-lab

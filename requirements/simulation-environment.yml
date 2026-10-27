@@ -1,0 +1,12 @@
+# conda env create -f requirements/simulation-environment.yml
+name: omtrack-sim
+channels:
+  - conda-forge
+  - aihabitat
+dependencies:
+  - python=3.9
+  - habitat-sim=0.3.1
+  - withbullet
+  - pip
+  - pip:
+      - pip==25.2

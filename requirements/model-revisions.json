@@ -1,0 +1,7 @@
+{
+  "OmTrackVLA-0.6B": "ed97c9f99386c64b3d6b3607b9319438e17daa27",
+  "Qwen3-0.6B": "c1899de289a04d12100db370d81485cdf75e47ca",
+  "dinov3-vits16-pretrain-lvd1689m": "114c1379950215c8b35dfcd4e90a5c251dde0d32",
+  "siglip-so400m-patch14-384": "9fdffc58afc957d1a03a25b10dba0329ab15c2a3",
+  "grounding-dino-tiny": "a2bb814dd30d776dcf7e30523b00659f4f141c71"
+}

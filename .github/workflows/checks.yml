@@ -1,0 +1,16 @@
+name: Repository checks
+on: [push, pull_request]
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Contract tests (no models or GPU)
+        run: python -m unittest discover -s tests -v
+      - name: Syntax
+        run: |
+          python -m compileall -q real_robot scripts tests model.py train.py cache_gridpool.py open_trackvla_hf
+          bash -n setup.sh run-local.sh eval.sh real_robot/start_omtrack_ridgeback.sh real_robot/start_omtrack_preview.sh
