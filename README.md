@@ -110,6 +110,10 @@ empty scene. `trajectory_valid` in model-only mode checks numerical finiteness;
 it does not establish correct target choice, obstacle clearance or path accuracy.
 The preview never executes the displayed paths.
 
+For bounded, timestamped camera recordings paired with model outputs and an
+offline prompt comparison, see [real-camera evaluation](docs/REAL_CAMERA_EVALUATION.md).
+Local camera recordings stay under ignored `outputs/`; they are not published.
+
 ## 5. Compute benchmarks
 
 Create reproducible RGB fixtures from an available video:

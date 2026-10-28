@@ -16,6 +16,10 @@ its released neural architecture.
 | `run_remote_omtrack_case.py` | Explicitly configured remote serving benchmark |
 | `report_omtrack_only.py`, `report_native_modes.py` | Historical lab report format readers |
 | `sample_compute_host.py` | Read-only CPU/RAM telemetry |
+| `record_live_model_test.py` | Bounded camera recording paired with fresh model predictions |
+| `record_prompt_clip.py`, `evaluate_prompt_swap.py` | Camera-only capture and offline A/B/B/A prompt replay |
+| `waypoint_data.py` | Explicit timestamped pose-to-waypoint label validation |
+| `rviz/live_mapping.yaml`, `rviz/ridgeback_live_map.rviz` | Optional read-only SLAM map and RViz display settings |
 
 No ROS movement publisher, Nav2 or DyNAMO integration is included. Mode
 `model_only` does not establish target presence, identity or path correctness.

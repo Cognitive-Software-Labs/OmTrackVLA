@@ -1,0 +1,121 @@
+Panels:
+- Class: rviz_common/Displays
+  Name: Displays
+- Class: rviz_common/Views
+  Name: Views
+Visualization Manager:
+  Class: ''
+  Global Options:
+    Background Color: 30; 30; 30
+    Fixed Frame: omtrack_display_map
+    Frame Rate: 20
+  Displays:
+  - Class: rviz_default_plugins/Grid
+    Name: Ground grid
+    Enabled: true
+    Cell Size: 0.5
+    Plane Cell Count: 40
+    Reference Frame: <Fixed Frame>
+    Value: true
+  - Class: rviz_default_plugins/RobotModel
+    Name: Ridgeback robot
+    Enabled: true
+    Alpha: 1.0
+    Visual Enabled: true
+    Collision Enabled: false
+    Description Source: Topic
+    Description Topic:
+      Value: /r100_0160/robot_description
+      Reliability Policy: Reliable
+      Durability Policy: Transient Local
+      Depth: 1
+    TF Prefix: ''
+    Update Interval: 0
+    Value: true
+    Links:
+      All Links Enabled: true
+      Expand Joint Details: false
+      Expand Link Details: false
+      Expand Tree: false
+      Link Tree Style: Links in Alphabetic Order
+  - Class: rviz_default_plugins/Axes
+    Name: Robot axes
+    Enabled: true
+    Length: 0.5
+    Radius: 0.02
+    Value: true
+  - Class: rviz_default_plugins/LaserScan
+    Name: Front lidar surroundings
+    Enabled: true
+    Topic:
+      Value: /r100_0160/sensors/lidar2d_0/scan
+      Reliability Policy: Best Effort
+      Durability Policy: Volatile
+      Depth: 5
+    Size (m): 0.03
+    Style: Flat Squares
+    Color Transformer: FlatColor
+    Color: 100; 170; 255
+    Value: true
+    Size (Pixels): 4
+    Position Transformer: XYZ
+    Decay Time: 0.5
+  - Class: rviz_default_plugins/LaserScan
+    Name: Rear lidar surroundings
+    Enabled: true
+    Topic:
+      Value: /r100_0160/sensors/lidar2d_1/scan
+      Reliability Policy: Best Effort
+      Durability Policy: Volatile
+      Depth: 5
+    Size (m): 0.03
+    Style: Flat Squares
+    Color Transformer: FlatColor
+    Color: 180; 130; 255
+    Value: true
+    Size (Pixels): 4
+    Position Transformer: XYZ
+    Decay Time: 0.5
+  - Class: rviz_default_plugins/Map
+    Name: Live exploration map
+    Enabled: true
+    Value: true
+    Alpha: 0.7
+    Color Scheme: map
+    Draw Behind: true
+    Topic:
+      Value: /map
+      Reliability Policy: Reliable
+      Durability Policy: Transient Local
+      Depth: 1
+  - Class: rviz_default_plugins/Image
+    Name: Live Ridgeback camera
+    Enabled: true
+    Value: true
+    Topic:
+      Value: /r100_0160/sensors/camera_0/color/image
+      Reliability Policy: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Depth: 1
+    Transport Hint: raw
+    Normalize Range: true
+  Tools:
+  - Class: rviz_default_plugins/Interact
+  - Class: rviz_default_plugins/MoveCamera
+  - Class: rviz_default_plugins/Select
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 12
+      Target Frame: base_link
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Pitch: 1.3
+      Yaw: 0
+  Value: true
+Window Geometry:
+  Width: 1500
+  Height: 950

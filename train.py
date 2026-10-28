@@ -210,6 +210,9 @@ class TVIEmbedder(nn.Module):
         self.view_emb   = nn.Embedding(max_views, d_model)
         self.kind_emb   = nn.Embedding(2, d_model)
         self.angle_proj = nn.Linear(2, d_model)
+        # Retain the checkpoint's bbox branch for strict state loading. The
+        # current trainer forward path does not consume bbox features.
+        self.bbox_proj  = nn.Linear(4, d_model)
 
     def make_time_token(self, t_scalar: int, kind_id: int, view_id: int = 0,
                         device: Optional[torch.device] = None) -> torch.Tensor:
@@ -300,6 +303,8 @@ class OpenTrackVLA(nn.Module):
         if not cfg.use_angle_tvi:
             for p in self.tvi.angle_proj.parameters():
                 p.requires_grad = False
+        for p in self.tvi.bbox_proj.parameters():
+            p.requires_grad = False
         if cfg.alpha_xy is not None:
             vec = [1.0] * action_dims
             if action_dims >= 2:
@@ -676,6 +681,7 @@ class TrainConfig:
     seed: int = 0
     num_workers: int = 4
     # model
+    freeze_llm: bool = False
     use_angle_tvi: bool = False
     beta_nav: float = 10.0
     cache_root: Optional[str] = None
@@ -818,6 +824,7 @@ def train(cfg: TrainConfig):
     model = OpenTrackVLA(
         ModelConfig(
             llm_name=cfg.llm_name,
+            freeze_llm=cfg.freeze_llm,
             n_waypoints=cfg.n_waypoints,
             beta_nav=cfg.beta_nav,
             use_angle_tvi=cfg.use_angle_tvi,
@@ -1472,6 +1479,8 @@ def parse_args() -> TrainConfig:
     ap.add_argument('--grad_clip', type=float, default=1.0)
     ap.add_argument('--mixed_precision', action='store_true')
     ap.add_argument('--vision_feat_dim', type=int, default=1536)
+    ap.add_argument('--freeze_llm', action='store_true',
+                    help='Freeze the pretrained language model; projector and waypoint head remain trainable')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--num_workers', type=int, default=4)
     ap.add_argument('--cache_root', type=str, default=None, help='Root folder containing vision_cache; defaults to <train_json>/vision_cache')
