@@ -415,23 +415,6 @@ class VisionFeatureCacher(nn.Module):
         print(f"Cached sequence to: {seq_dir}  (V={V}, T={T}, P={P}, C_total={C_total})")
 
 
-# -----------------------------------------------------------------------------
-# Optional: Cross-Modality Projector P(·) to LLM space
-# -----------------------------------------------------------------------------
-
-class CrossModalityProjector(nn.Module):
-    """Two-layer MLP projector P(·) mapping vision features (C_total) -> LLM dim (D)."""
-    def __init__(self, in_dim: int, out_dim: int):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.LayerNorm(in_dim),
-            nn.Linear(in_dim, out_dim), nn.GELU(),
-            nn.Linear(out_dim, out_dim)
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x)
-
 
 # -----------------------------------------------------------------------------
 # Demo
@@ -505,6 +488,7 @@ if __name__ == "__main__":
         if os.path.exists(sample_path):
             sample = torch.load(sample_path)
             Vfine = sample["Vfine"]  # (V, 64, C_total)
+            from model import CrossModalityProjector  # single definition, used only by this self-test
             projector = CrossModalityProjector(in_dim=Vfine.shape[-1], out_dim=256)
             EVfine = projector(Vfine.float())  # (V, 64, 256)
             print("Projected tokens shape:", tuple(EVfine.shape))
