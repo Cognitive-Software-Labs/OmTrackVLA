@@ -510,7 +510,7 @@ if __name__ == "__main__":
         if os.path.exists(sample_path):
             sample = torch.load(sample_path)
             Vfine = sample["Vfine"]  # (V, 64, C_total)
-            from model import CrossModalityProjector  # single definition, used only by this self-test
+            from omtrack.model import CrossModalityProjector  # single definition, used only by this self-test
             projector = CrossModalityProjector(in_dim=Vfine.shape[-1], out_dim=256)
             EVfine = projector(Vfine.float())  # (V, 64, 256)
             print("Projected tokens shape:", tuple(EVfine.shape))

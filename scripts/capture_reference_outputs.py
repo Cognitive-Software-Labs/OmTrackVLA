@@ -40,14 +40,14 @@ def tensor_digest(torch, tensor):
 
 
 def planner_section(torch, assets, device):
-    from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
-    from train import ModelConfig as TrainModelConfig, OpenTrackVLA as TrainOpenTrackVLA
+    from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
+    from train import ModelConfig as TrainModelConfig, OmTrackVLA as TrainOpenTrackVLA
     checkpoint = assets / 'models/OmTrackVLA-0.6B'
     qwen = assets / 'models/Qwen3-0.6B'
-    config = OpenTrackVLAConfig.from_pretrained(str(checkpoint), local_files_only=True)
+    config = OmTrackVLAConfig.from_pretrained(str(checkpoint), local_files_only=True)
     config.llm_name = str(qwen)
     # Loaded exactly as inference_server.py does (default dtype).
-    released = OpenTrackVLAForWaypoint.from_pretrained(
+    released = OmTrackVLAForWaypoint.from_pretrained(
         str(checkpoint), config=config, low_cpu_mem_usage=True).eval().to(device)
     state = released.model.state_dict()
     trainer = TrainOpenTrackVLA(TrainModelConfig(

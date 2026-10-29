@@ -28,20 +28,20 @@ def main():
 
     import torch
     import transformers
-    from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
-    from train import ModelConfig as TrainModelConfig, OpenTrackVLA as TrainOpenTrackVLA
+    from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
+    from train import ModelConfig as TrainModelConfig, OmTrackVLA as TrainOpenTrackVLA
     torch.set_num_threads(4)
     torch.manual_seed(187)
     if a.device == 'cuda' and not torch.cuda.is_available():
         raise RuntimeError('CUDA was requested but is unavailable')
-    config = OpenTrackVLAConfig.from_pretrained(str(checkpoint), local_files_only=True)
+    config = OmTrackVLAConfig.from_pretrained(str(checkpoint), local_files_only=True)
     config.llm_name = str(qwen)
     config.freeze_llm = True
     device = torch.device(a.device)
     start = time.perf_counter()
     # Load as inference_server.py does. Forcing bfloat16 here also cast the float32
     # projector and waypoint head, which then failed on float32 vision features.
-    released = OpenTrackVLAForWaypoint.from_pretrained(
+    released = OmTrackVLAForWaypoint.from_pretrained(
         str(checkpoint), config=config, local_files_only=True, low_cpu_mem_usage=True,
     ).eval().to(device)
     load_released_s = time.perf_counter() - start

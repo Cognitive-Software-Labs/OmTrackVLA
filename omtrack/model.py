@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 """OmTrackVLA network: projected vision tokens + instruction -> 8 robot-frame waypoints.
 
-The code names the model OpenTrackVLA (also open_trackvla_hf/ and the released
-checkpoint's "OpenTrackVLAForWaypoint" architecture); OmTrackVLA is the project's
-published name. Both refer to this one network. Renaming the classes would break
-loading the released Hugging Face checkpoint.
+Upstream code called this OpenTrackVLA; the released checkpoint's config.json still
+lists "OpenTrackVLAForWaypoint" and model_type "navfom". Loading goes through
+omtrack.hf with explicit classes, so only model_type has to keep matching.
 
-Single definition used by inference (open_trackvla_hf), training (train.py) and
-the simulator agent (trained_agent.py). Data loading lives in tracking_dataset.py.
+Single definition used by inference (omtrack.hf), training (training/train.py) and
+the simulator agent. Data loading lives in omtrack/dataset.py.
 """
 
 from __future__ import annotations
@@ -109,7 +108,7 @@ class ModelConfig:
     alpha_xy: Optional[float] = None  # Optional scalar to scale XY only; yaw stays unscaled
 
 
-class OpenTrackVLA(nn.Module):
+class OmTrackVLA(nn.Module):
     def __init__(self, cfg: ModelConfig, vision_feat_dim: int):
         super().__init__()
         self.cfg = cfg

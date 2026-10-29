@@ -10,7 +10,7 @@ from typing import List, Tuple
 import torch
 from PIL import Image
 
-from cache_gridpool import (VisionFeatureCacher, VisionCacheConfig, adapt_siglip_grid, grid_pool_tokens,
+from omtrack.vision import (VisionFeatureCacher, VisionCacheConfig, adapt_siglip_grid, grid_pool_tokens,
                             COARSE_TOKENS)
 
 

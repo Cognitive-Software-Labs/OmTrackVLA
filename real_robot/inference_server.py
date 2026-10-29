@@ -84,12 +84,12 @@ class OmTrackInference:
 
             os.environ["DINOV3_MODEL_PATH"] = str(dino)
             os.environ["SIGLIP_MODEL_PATH"] = str(siglip)
-            from cache_gridpool import VisionCacheConfig, VisionFeatureCacher, pool_fine_coarse
-            from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
+            from omtrack.vision import VisionCacheConfig, VisionFeatureCacher, pool_fine_coarse
+            from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
 
-            config = OpenTrackVLAConfig.from_pretrained(str(checkpoint))
+            config = OmTrackVLAConfig.from_pretrained(str(checkpoint))
             config.llm_name = str(qwen)
-            self.planner = OpenTrackVLAForWaypoint.from_pretrained(
+            self.planner = OmTrackVLAForWaypoint.from_pretrained(
                 str(checkpoint), config=config, low_cpu_mem_usage=True
             ).eval().to(self.device)
             vision_config = VisionCacheConfig(image_size=384, batch_size=1, device=str(self.device))

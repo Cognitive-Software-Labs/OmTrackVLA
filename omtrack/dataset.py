@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from cache_gridpool import VisionFeatureCacher, VisionCacheConfig
+from omtrack.vision import VisionFeatureCacher, VisionCacheConfig
 
 
 def load_tokens_file(path: str) -> torch.Tensor:

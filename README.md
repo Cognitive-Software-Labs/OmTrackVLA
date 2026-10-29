@@ -7,10 +7,10 @@ Ridgeback camera/waypoint preview. Based on
 
 RGB image history and a text instruction are encoded by DINOv3/SiGLIP and a
 Qwen-based planner to produce eight robot-relative `[forward, left, yaw]`
-waypoints. In the code the model is called `OpenTrackVLA` (`model.py`,
-`open_trackvla_hf/`); OmTrackVLA is the project's published name for the same
-network. The default live mode runs only this neural model. Optional local
-YOLO/Grounding DINO identity tracking is separate from the original model.
+waypoints. The library is the `omtrack/` package: network, training data, vision
+features and the Hugging Face loader. The default live mode runs only this
+neural model. Optional local YOLO/Grounding DINO identity tracking is separate
+from the original model.
 No DyNAMO component, distance estimator, Nav2 controller or robot movement
 publisher is included.
 

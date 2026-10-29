@@ -15,7 +15,7 @@ except ImportError:  # CI installs only numpy/Pillow
 @unittest.skipIf(torch is None, 'needs torch and transformers')
 class VisionRecipeTests(unittest.TestCase):
     def setUp(self):
-        import cache_gridpool
+        import omtrack.vision as cache_gridpool
         self.cg = cache_gridpool
         g = torch.Generator().manual_seed(0)
         self.Hp, self.Wp = 24, 24

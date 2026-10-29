@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_FILES = [
     'real_robot/target_perception.py',
     'real_robot/inference_server.py',
-    'cache_gridpool.py',
+    'omtrack/vision.py',
     'real_robot/benchmark_native_modes.py',
     'real_robot/model_client.py',
 ]

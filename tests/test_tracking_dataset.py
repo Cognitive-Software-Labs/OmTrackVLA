@@ -17,7 +17,7 @@ except ImportError:  # CI installs only numpy/Pillow; these tests need torch
 @unittest.skipIf(torch is None, 'needs torch')
 class TrackingDatasetTests(unittest.TestCase):
     def setUp(self):
-        from tracking_dataset import DataConfig, JsonTrackingDataset, collate_batch
+        from omtrack.dataset import DataConfig, JsonTrackingDataset, collate_batch
         self.DataConfig, self.Dataset, self.collate = DataConfig, JsonTrackingDataset, collate_batch
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)

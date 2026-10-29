@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 
 import torch
 
-from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
+from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
 
 
 def _resolve_ckpt_path(explicit: Optional[Path], ckpt_dir: Path) -> Path:
@@ -36,7 +36,7 @@ def _load_config_blob(ckpt_blob: Dict[str, Any], fallback_path: Path) -> Dict[st
     raise RuntimeError("Could not find a config dictionary inside the checkpoint or ckpt_dir/config.json")
 
 
-def _build_hf_config(overrides: Dict[str, Any], args: argparse.Namespace) -> OpenTrackVLAConfig:
+def _build_hf_config(overrides: Dict[str, Any], args: argparse.Namespace) -> OmTrackVLAConfig:
     def _maybe(key: str, cast, default):
         if getattr(args, key) is not None:
             return cast(getattr(args, key))
@@ -44,7 +44,7 @@ def _build_hf_config(overrides: Dict[str, Any], args: argparse.Namespace) -> Ope
 
     # Historical checkpoints may store `no_tanh_actions`; convert to `use_tanh_actions`
     no_tanh = overrides.get("no_tanh_actions", not overrides.get("use_tanh_actions", True))
-    hf_cfg = OpenTrackVLAConfig(
+    hf_cfg = OmTrackVLAConfig(
         llm_name=args.llm_name or overrides.get("llm_name", "Qwen/Qwen3-0.6B"),
         freeze_llm=bool(overrides.get("freeze_llm", True)),
         n_waypoints=int(overrides.get("n_waypoints", 8)),
@@ -80,7 +80,7 @@ def convert_checkpoint(
     overrides = _load_config_blob(obj, ckpt_dir)
     hf_config = _build_hf_config(overrides, args)
     print(f"[convert] Instantiating HuggingFace wrapper with llm={hf_config.llm_name}")
-    hf_model = OpenTrackVLAForWaypoint(hf_config)
+    hf_model = OmTrackVLAForWaypoint(hf_config)
     missing, unexpected = hf_model.model.load_state_dict(state, strict=False)
     if missing:
         print(f"[convert][warn] Missing keys: {missing}")
@@ -107,7 +107,7 @@ def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(description="Convert training checkpoints to HuggingFace format.")
     ap.add_argument("--ckpt-path", type=str, default=None, help="Explicit path to model_epoch*.pt")
     ap.add_argument("--ckpt-dir", type=str, default="ckpts", help="Directory to search when --ckpt-path is omitted")
-    ap.add_argument("--out-dir", type=str, default="open_trackvla_hf", help="Destination HuggingFace directory")
+    ap.add_argument("--out-dir", type=str, default="outputs/omtrack-hf", help="Destination HuggingFace directory")
     ap.add_argument("--vision-feat-dim", type=int, default=None, help="Override vision feature dim")
     ap.add_argument("--llm-name", type=str, default=None, help="Override llm_name stored in the checkpoint config")
     ap.add_argument("--overwrite", action="store_true", help="Allow replacing existing files in --out-dir")

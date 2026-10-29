@@ -19,8 +19,8 @@ from pathlib import Path
 
 
 try:
-    from model import OpenTrackVLA as PlannerModel, ModelConfig as PlannerConfig
-    from cache_gridpool import VisionFeatureCacher, VisionCacheConfig
+    from omtrack.model import OmTrackVLA as PlannerModel, ModelConfig as PlannerConfig
+    from omtrack.vision import VisionFeatureCacher, VisionCacheConfig
 except Exception:
     PlannerModel = None  # type: ignore
     PlannerConfig = None  # type: ignore
@@ -28,9 +28,9 @@ except Exception:
     VisionCacheConfig = None  # type: ignore
 
 try:
-    from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
+    from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
 except Exception:
-    OpenTrackVLAForWaypoint = None  # type: ignore
+    OmTrackVLAForWaypoint = None  # type: ignore
 
 try:
     from huggingface_hub import snapshot_download
@@ -358,16 +358,16 @@ class GTBBoxAgent(AgentConfig):
             return
         # Vision feature dim used in train_planner by default
         vision_feat_dim = 1536
-        if self._hf_model_dir and OpenTrackVLAForWaypoint is not None:
+        if self._hf_model_dir and OmTrackVLAForWaypoint is not None:
             try:
                 print(f"[planner] Loading HuggingFace checkpoint: {self._hf_model_dir}")
-                hf_config = OpenTrackVLAConfig.from_pretrained(self._hf_model_dir)
+                hf_config = OmTrackVLAConfig.from_pretrained(self._hf_model_dir)
                 local_qwen = Path(self._hf_model_dir).resolve().parent / 'Qwen3-0.6B'
                 if local_qwen.is_dir():
                     hf_config.llm_name = str(local_qwen)
                 elif Path(hf_config.llm_name).is_absolute():
                     hf_config.llm_name = 'Qwen/Qwen3-0.6B'
-                model = OpenTrackVLAForWaypoint.from_pretrained(self._hf_model_dir, config=hf_config)
+                model = OmTrackVLAForWaypoint.from_pretrained(self._hf_model_dir, config=hf_config)
                 model = model.to(self.planner_device).eval()
                 self.planner_model = model
                 return

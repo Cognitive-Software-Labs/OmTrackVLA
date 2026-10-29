@@ -17,7 +17,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch.distributed as dist
 
 from transformers import AutoTokenizer, AutoModel
-from cache_gridpool import VisionFeatureCacher, VisionCacheConfig, grid_pool_tokens, adapt_siglip_grid
+from omtrack.vision import VisionFeatureCacher, VisionCacheConfig, grid_pool_tokens, adapt_siglip_grid
 
 
 # ----------------------- utils -----------------------
@@ -115,9 +115,9 @@ def _dataset_sanity_report(ds: 'JsonTrackingDataset', cfg: 'TrainConfig', max_it
 
 # ----------------------- TVI + projector + planner + model -----------------------
 
-# Single definition shared with inference (open_trackvla_hf loads model.OpenTrackVLA).
-from model import TVIEmbedder, CrossModalityProjector, PlannerHead3L, ModelConfig, OpenTrackVLA  # noqa: E402
-from tracking_dataset import (load_tokens_file, integrate_actions_to_waypoints,  # noqa: E402
+# Single definition shared with inference (omtrack.hf wraps omtrack.model.OmTrackVLA).
+from omtrack.model import TVIEmbedder, CrossModalityProjector, PlannerHead3L, ModelConfig, OmTrackVLA  # noqa: E402
+from omtrack.dataset import (load_tokens_file, integrate_actions_to_waypoints,  # noqa: E402
                               load_examples_from_path, DataConfig, JsonTrackingDataset, collate_batch)
 
 
@@ -290,7 +290,7 @@ def train(cfg: TrainConfig):
     dl = DataLoader(ds, batch_size=cfg.batch_size, shuffle=(sampler is None), num_workers=cfg.num_workers,
                     pin_memory=True, collate_fn=collate_batch, sampler=sampler)
 
-    model = OpenTrackVLA(
+    model = OmTrackVLA(
         ModelConfig(
             llm_name=cfg.llm_name,
             freeze_llm=cfg.freeze_llm,
@@ -811,7 +811,7 @@ def _run_inference(cfg: TrainConfig):
     llm_name        = str(ck_cfg.get('llm_name', getattr(cfg, 'llm_name', "Qwen/Qwen3-8B")))
     print (llm_name)
 
-    model = OpenTrackVLA(
+    model = OmTrackVLA(
         ModelConfig(
             llm_name=llm_name,
             n_waypoints=n_waypoints,

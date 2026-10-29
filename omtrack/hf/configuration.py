@@ -6,15 +6,15 @@ from typing import Optional
 from transformers import PretrainedConfig
 
 
-class OpenTrackVLAConfig(PretrainedConfig):
+class OmTrackVLAConfig(PretrainedConfig):
     """
-    Minimal HuggingFace configuration wrapper for the OpenTrackVLA planner.
-    This mirrors the fields consumed by `model.ModelConfig` so checkpoints
-    converted via `convert_ckpt_to_hf.py` can be loaded with
-    `OpenTrackVLAForWaypoint.from_pretrained(...)`.
+    Minimal HuggingFace configuration wrapper for the OmTrackVLA planner.
+    This mirrors the fields consumed by `omtrack.model.ModelConfig` so checkpoints
+    converted via `training/convert_ckpt_to_hf.py` can be loaded with
+    `OmTrackVLAForWaypoint.from_pretrained(...)`.
     """
 
-    model_type = "navfom"
+    model_type = "navfom"  # must match the released checkpoint's config.json
 
     def __init__(
         self,

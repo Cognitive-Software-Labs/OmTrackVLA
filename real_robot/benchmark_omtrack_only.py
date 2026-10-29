@@ -22,8 +22,9 @@ SOURCE_FILES = [
     'real_robot/inference_server.py',
     'real_robot/protocol.py',
     'real_robot/model_client.py',
-    'cache_gridpool.py',
-    'open_trackvla_hf/modeling_open_trackvla.py',
+    'omtrack/vision.py',
+    'omtrack/hf/modeling.py',
+    'omtrack/model.py',
 ]
 MODEL_NAMES = (
     'OmTrackVLA-0.6B',

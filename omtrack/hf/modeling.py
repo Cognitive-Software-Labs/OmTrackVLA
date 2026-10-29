@@ -6,20 +6,20 @@ from typing import List, Optional
 import torch
 from transformers import PreTrainedModel
 
-from model import ModelConfig, OpenTrackVLA
-from .configuration_open_trackvla import OpenTrackVLAConfig
+from omtrack.model import ModelConfig, OmTrackVLA
+from .configuration import OmTrackVLAConfig
 
 
-class OpenTrackVLAForWaypoint(PreTrainedModel):
+class OmTrackVLAForWaypoint(PreTrainedModel):
     """
-    HuggingFace-compatible wrapper around the native OpenTrackVLA planner.
+    HuggingFace-compatible wrapper around the native OmTrackVLA planner.
     This module enables `from_pretrained` / `save_pretrained` semantics while
-    delegating the actual forward pass to the existing `model.OpenTrackVLA`.
+    delegating the actual forward pass to `omtrack.model.OmTrackVLA`.
     """
 
-    config_class = OpenTrackVLAConfig
+    config_class = OmTrackVLAConfig
 
-    def __init__(self, config: OpenTrackVLAConfig):
+    def __init__(self, config: OmTrackVLAConfig):
         super().__init__(config)
         nav_cfg = ModelConfig(
             llm_name=config.llm_name,
@@ -31,7 +31,7 @@ class OpenTrackVLAForWaypoint(PreTrainedModel):
             use_tanh_actions=config.use_tanh_actions,
             alpha_xy=config.alpha_xy,
         )
-        self.model = OpenTrackVLA(nav_cfg, vision_feat_dim=config.vision_feat_dim)
+        self.model = OmTrackVLA(nav_cfg, vision_feat_dim=config.vision_feat_dim)
         self._register_load_state_dict_pre_hook(self._maybe_prefix_state_dict)
         self.post_init()
 

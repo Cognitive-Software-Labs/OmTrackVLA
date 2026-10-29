@@ -11,7 +11,7 @@ training provenance of the released checkpoint.
 | Network | Eight triples, scaled by `alpha_task`; the local checkpoint config uses XY scale 2 and no output tanh |
 | Text/vision | Text embeddings and pooled visual tokens condition an action token, followed by a waypoint MLP; no selected person ID is returned |
 | Converter | For horizon 8, integrate nine commands, append after each integration; stored `trajectory` has nine post-action points |
-| Dataset class (`tracking_dataset.py`) | Read `waypoints` if present; otherwise derive labels from `actions`. The converter's `trajectory` field is ignored |
+| Dataset class (`omtrack/dataset.py`) | Read `waypoints` if present; otherwise derive labels from `actions`. The converter's `trajectory` field is ignored |
 | Action-derived targets | Start at origin, integrate command indices 0 through 7 into nine positions, then use rounded linspace indices `[0,1,2,3,5,6,7,8]` for eight targets |
 | Default action-derived timing | `DataConfig.default_dt=0.1`; resulting offsets `[0,.1,.2,.3,.5,.6,.7,.8]` seconds. `integrate_actions_to_waypoints` itself defaults to `dt=0.2`, so a caller that omits `dt` gets different timing |
 | Rollout/local command conversion | Use predicted waypoint index 1 and divide components by .1 by default; these are proposed commands, not measured executed velocities |
