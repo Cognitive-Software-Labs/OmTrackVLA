@@ -13,6 +13,10 @@ Optional native-mode benchmarks require the tracking dependencies and weights.
 
 ## Measured reference (2026-10-27)
 
+These numbers came from the benchmark scripts before they were moved onto the
+shared helper modules. Timed work is unchanged; new reports list
+`model_client.py` in `source_sha256` as an extra key.
+
 Two hosts were measured: the Ridgeback's onboard RTX 5060 (8 GB), and Thor, a
 separate NVIDIA compute host with unified memory that the Ridgeback reaches over
 the network (see Remote service benchmark below).

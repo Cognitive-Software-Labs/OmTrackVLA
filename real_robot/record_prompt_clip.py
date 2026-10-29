@@ -1,15 +1,18 @@
 """Record a bounded RGB-only clip from an existing ROS camera; no publishers."""
 import argparse
-import hashlib
 import json
 from pathlib import Path
 import time
+
+from real_robot.defaults import CAMERA_TOPIC
+from real_robot.files import sha256_bytes
+from real_robot.ros_camera import is_jpeg, latest_frame_qos, stamp_ns
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--topic', default='/r100_0160/sensors/camera_0/color/image/compressed')
+    p.add_argument('--topic', default=CAMERA_TOPIC)
     p.add_argument('--seconds', type=float, default=16)
     p.add_argument('--hz', type=float, default=2)
     p.add_argument('--scene', required=True, help='Observed clothing, positions and movement; not model labels')
@@ -20,7 +23,6 @@ def main():
         p.error('Use a new output directory')
     import rclpy
     from rclpy.node import Node
-    from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
     from sensor_msgs.msg import CompressedImage
     a.output.mkdir(parents=True)
     rows = []
@@ -33,22 +35,20 @@ def main():
     def image(msg):
         nonlocal last_stamp, next_due
         now = time.monotonic()
-        stamp = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec
+        stamp = stamp_ns(msg.header)
         if stamp == last_stamp or now < next_due:
             return
-        if 'jpeg' not in msg.format.lower() and 'jpg' not in msg.format.lower():
+        if not is_jpeg(msg.format):
             raise ValueError('Expected JPEG compressed input; got ' + msg.format)
         payload = bytes(msg.data)
         filename = f'{len(rows):05d}.jpg'
         (a.output / filename).write_bytes(payload)
-        rows.append(dict(image=filename, image_sha256=hashlib.sha256(payload).hexdigest(),
-                         source_stamp_ns=stamp, elapsed_s=now-started))
+        rows.append(dict(image=filename, image_sha256=sha256_bytes(payload),
+                         source_stamp_ns=stamp, elapsed_s=now - started))
         last_stamp = stamp
-        next_due = now + 1/a.hz
+        next_due = now + 1 / a.hz
 
-    qos = QoSProfile(history=HistoryPolicy.KEEP_LAST, depth=1,
-                     reliability=ReliabilityPolicy.BEST_EFFORT)
-    node.create_subscription(CompressedImage, a.topic, image, qos)
+    node.create_subscription(CompressedImage, a.topic, image, latest_frame_qos())
     complete = False
     try:
         print('Recording camera only; no model or robot commands.', flush=True)
@@ -60,7 +60,7 @@ def main():
         rclpy.shutdown()
         manifest = dict(schema_version=1, complete=complete, scene=a.scene, topic=a.topic,
                         requested_hz=a.hz, requested_seconds=a.seconds, samples=rows)
-        (a.output / 'clip.json').write_text(json.dumps(manifest, indent=2)+'\n')
+        (a.output / 'clip.json').write_text(json.dumps(manifest, indent=2) + '\n')
     if len(rows) < 2:
         raise RuntimeError('Too few camera frames; clip cannot be evaluated')
     print(json.dumps(dict(saved_frames=len(rows), clip=str(a.output.resolve()))), flush=True)

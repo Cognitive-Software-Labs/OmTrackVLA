@@ -52,5 +52,4 @@ inference endpoint is created by the setup.
   do not certify target presence or trajectory correctness.
 
 Output files and logs stay under ignored `outputs/`. Stop foreground processes
-with Ctrl-C. The optional PID-based stop helper is only for a separately saved
-`outputs/ridgeback_omtrack/runtime.json`; a fresh clone has no such PID manifest.
+with Ctrl-C.

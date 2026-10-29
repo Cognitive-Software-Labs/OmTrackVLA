@@ -1,10 +1,12 @@
 """Replay identical recorded RGB under A/B/B/A prompts; no identity accuracy claim."""
 import argparse
-import hashlib
 import json
 import os
 from pathlib import Path
 import time
+
+from real_robot.files import sha256_file
+from real_robot.model_client import require_fresh_waypoints
 
 
 def load_clip(folder):
@@ -16,7 +18,7 @@ def load_clip(folder):
         path = (folder / row['image']).resolve()
         if path.parent != folder.resolve():
             raise ValueError('Frame must be directly inside the clip directory')
-        if hashlib.sha256(path.read_bytes()).hexdigest() != row['image_sha256']:
+        if sha256_file(path) != row['image_sha256']:
             raise ValueError('Input checksum mismatch: ' + str(path))
     times = [row['elapsed_s'] for row in rows]
     if any(b <= a for a, b in zip(times, times[1:])):
@@ -60,7 +62,6 @@ def main():
     if a.output.exists():
         p.error('Use a new output directory')
     import cv2
-    import numpy as np
     import torch
     from real_robot.inference_server import OmTrackInference
     frames = []
@@ -90,9 +91,7 @@ def main():
                 model.next_planner_due = 0.0
                 started = time.perf_counter()
                 reply = model.infer(rgb, prompt, reset_target=(i == 0))
-                points = np.asarray(reply['trajectory'], dtype=float)
-                if not reply['planner_updated'] or points.shape != (8, 3) or not np.isfinite(points).all():
-                    raise RuntimeError('Expected a fresh finite 8x3 prediction')
+                require_fresh_waypoints(reply)
                 result = dict(frame=row, prompt=prompt, elapsed_s=time.perf_counter()-started, **reply)
                 log.write(json.dumps(result)+'\n')
                 log.flush()

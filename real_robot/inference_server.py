@@ -25,6 +25,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from real_robot.protocol import receive_message, send_message
+from real_robot.defaults import MODEL_PORT
 from real_robot.perf_log import PerfLog, timed
 
 
@@ -437,7 +438,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--allowed-client", default="127.0.0.1",
                         help="Only accept connections from this Ridgeback IPv4 address")
-    parser.add_argument("--port", type=int, default=18781)
+    parser.add_argument("--port", type=int, default=MODEL_PORT)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--mode", choices=("full", "perception", "planner", "model_only"), default="full")
     parser.add_argument("--history", type=int, default=31)

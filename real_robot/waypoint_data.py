@@ -5,10 +5,11 @@ metres, yaw radians counterclockwise, body x forward and body y left. Validation
 here checks numerical consistency, not reference quality or physical safety.
 """
 import bisect
-import hashlib
 import json
 import math
 from pathlib import Path
+
+from real_robot.files import sha256_file
 
 
 def number(value, name):
@@ -186,7 +187,7 @@ def prepare_pose_session(session_manifest, *, prediction_offsets_s, max_pose_gap
     reference_path = (root/reference).resolve()
     if root not in reference_path.parents or not reference_path.is_file():
         raise ValueError('Reference poses must be a file within the session directory')
-    reference_sha = hashlib.sha256(reference_path.read_bytes()).hexdigest()
+    reference_sha = sha256_file(reference_path)
     reference_data = json.loads(reference_path.read_text())
     if reference_data.get('frame') != 'world_xy_ccw' or reference_data.get('units') != ['m', 'm', 'rad']:
         raise ValueError('Reference pose frame/units must be world_xy_ccw metres/radians')
@@ -213,7 +214,7 @@ def prepare_pose_session(session_manifest, *, prediction_offsets_s, max_pose_gap
         sha = row.get('sha256')
         if not isinstance(sha, str) or len(sha) != 64 or any(c not in '0123456789abcdef' for c in sha):
             raise ValueError('Frame SHA256 must be lowercase hex')
-        if hashlib.sha256(path.read_bytes()).hexdigest() != sha:
+        if sha256_file(path) != sha:
             raise ValueError('RGB checksum mismatch: ' + name)
         try:
             from PIL import Image
@@ -250,7 +251,7 @@ def prepare_pose_session(session_manifest, *, prediction_offsets_s, max_pose_gap
                 image_sha256=[r['sha256'] for r in window],
                 reference_manifest_sha256=reference_sha,
                 clock_alignment_record=str(alignment_path),
-                clock_alignment_record_sha256=hashlib.sha256(alignment_path.read_bytes()).hexdigest(),
+                clock_alignment_record_sha256=sha256_file(alignment_path),
                 frame_transform_verified=True, clock_alignment_verified=True,
                 max_pose_gap_s=max_pose_gap_s, max_history_gap_s=max_history_gap_s))
         validate_training_example(example)
