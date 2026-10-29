@@ -84,7 +84,7 @@ class OmTrackInference:
 
             os.environ["DINOV3_MODEL_PATH"] = str(dino)
             os.environ["SIGLIP_MODEL_PATH"] = str(siglip)
-            from cache_gridpool import VisionCacheConfig, VisionFeatureCacher, grid_pool_tokens
+            from cache_gridpool import VisionCacheConfig, VisionFeatureCacher, pool_fine_coarse
             from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
 
             config = OpenTrackVLAConfig.from_pretrained(str(checkpoint))
@@ -94,7 +94,7 @@ class OmTrackInference:
             ).eval().to(self.device)
             vision_config = VisionCacheConfig(image_size=384, batch_size=1, device=str(self.device))
             self.vision = VisionFeatureCacher(vision_config).eval()
-            self.grid_pool_tokens = grid_pool_tokens
+            self.pool_fine_coarse = pool_fine_coarse
         if mode in ("full", "perception"):
             from real_robot.target_perception import TargetPerception
             self.target_perception = TargetPerception(
@@ -212,9 +212,8 @@ class OmTrackInference:
                 with stage_timer("siglip"):
                     siglip_tokens = self.vision._encode_siglip([image], out_hw=(height, width))
             with stage_timer("token_pool_history"):
-                combined = torch.cat([dino_tokens, siglip_tokens], dim=-1)
-                fine = self.grid_pool_tokens(combined, height, width, out_tokens=64)[0].float()
-                coarse = self.grid_pool_tokens(combined, height, width, out_tokens=4)[0].float()
+                fine, coarse = self.pool_fine_coarse(dino_tokens, siglip_tokens, height, width)
+                fine, coarse = fine[0].float(), coarse[0].float()
             # Kept on the inference device: 31 x 4 x 1536 floats is about 762 KB, so
             # holding it in VRAM removes a device-to-host and host-to-device copy per frame.
             self.coarse_history.append(coarse.detach())

@@ -10,7 +10,8 @@ from typing import List, Tuple
 import torch
 from PIL import Image
 
-from cache_gridpool import VisionFeatureCacher, VisionCacheConfig, adapt_siglip_grid, grid_pool_tokens
+from cache_gridpool import (VisionFeatureCacher, VisionCacheConfig, adapt_siglip_grid, grid_pool_tokens,
+                            COARSE_TOKENS)
 
 
 def _list_image_files(dir_path: Path) -> List[Path]:
@@ -122,12 +123,7 @@ def _detect_layout_and_collect(data_root: Path) -> Tuple[List[List[Path]], List[
 
 @torch.inference_mode()
 def _encode_single(pil: Image.Image, enc: VisionFeatureCacher) -> Tuple[torch.Tensor, torch.Tensor]:
-    # Reproduce train_planner encoder contract
-    tok_dino, Hp, Wp = enc._encode_dino([pil])
-    tok_sigl = enc._encode_siglip([pil], out_hw=(Hp, Wp))
-    Vt_cat = torch.cat([tok_dino, tok_sigl], dim=-1)       # (1, P, C)
-    Vfine = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=64)
-    Vcoarse = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=4)
+    Vfine, Vcoarse = enc.encode_pil_fine_coarse(pil)
     return Vcoarse[0].cpu().float(), Vfine[0].cpu().float()
 
 
@@ -176,7 +172,7 @@ def main():
                     try:
                         vf = torch.load(str(vf_path), map_location='cpu')  # (64, C)
                         vf = vf.float() if vf.dtype != torch.float32 else vf
-                        vc = grid_pool_tokens(vf.unsqueeze(0), 8, 8, out_tokens=4)[0].cpu()  # (4, C)
+                        vc = grid_pool_tokens(vf.unsqueeze(0), 8, 8, out_tokens=COARSE_TOKENS)[0].cpu()  # (4, C)
                         try:
                             torch.save(vc.half(), str(vc_path))
                         except Exception:

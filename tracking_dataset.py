@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from cache_gridpool import VisionFeatureCacher, VisionCacheConfig, grid_pool_tokens
+from cache_gridpool import VisionFeatureCacher, VisionCacheConfig
 
 
 def load_tokens_file(path: str) -> torch.Tensor:
@@ -196,11 +196,7 @@ class JsonTrackingDataset(Dataset):
     def _encode_image_tokens(self, img_path: Path) -> Tuple[torch.Tensor, torch.Tensor]:
         enc = self._get_online_encoder()
         pil = Image.open(str(img_path)).convert('RGB')
-        tok_dino, Hp, Wp = enc._encode_dino([pil])               # (1, P, C_dino)
-        tok_sigl = enc._encode_siglip([pil], out_hw=(Hp, Wp))    # (1, P, C_sigl)
-        Vt_cat = torch.cat([tok_dino, tok_sigl], dim=-1)         # (1, P, C_total)
-        Vfine = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=64)  # (1, 64, C_total)
-        Vcoarse = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=4) # (1, 4,  C_total)
+        Vfine, Vcoarse = enc.encode_pil_fine_coarse(pil)          # (1, 64, C), (1, 4, C)
         return Vcoarse[0].cpu().float(), Vfine[0].cpu().float()
 
     def _read_indexed_example(self, idx: int) -> Dict[str, Any]:

@@ -160,6 +160,10 @@ def load_images_by_view_from_dir(root_dir: str) -> List[List[Image.Image]]:
 # Grid Average Pooling (token-level)
 # -----------------------------------------------------------------------------
 
+# Planner input per frame: the current frame gets FINE_TOKENS, each history frame COARSE_TOKENS.
+FINE_TOKENS = 64
+COARSE_TOKENS = 4
+
 def grid_pool_tokens(patch_tokens: torch.Tensor, Hp: int, Wp: int, out_tokens: int) -> torch.Tensor:
     """Average-pool patch tokens on a HxW grid down to out_tokens (must be square).
 
@@ -178,6 +182,20 @@ def grid_pool_tokens(patch_tokens: torch.Tensor, Hp: int, Wp: int, out_tokens: i
     feat = F.adaptive_avg_pool2d(feat, output_size=(s, s))  # (B, C, s, s)
     pooled = feat.flatten(2).transpose(1, 2).contiguous()    # (B, s*s, C)
     return pooled
+
+
+def pool_fine_coarse(dino_tokens: torch.Tensor, siglip_tokens: torch.Tensor,
+                      Hp: int, Wp: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    """The planner's vision recipe: concatenate DINOv3 and SigLIP patch tokens on the
+    channel axis, then grid-pool. Single definition for training, caching, simulator
+    and robot inference.
+
+    Args: dino_tokens (B, P, C_dino), siglip_tokens (B, P, C_siglip) on the same Hp x Wp grid.
+    Returns: (fine (B, FINE_TOKENS, C_total), coarse (B, COARSE_TOKENS, C_total)).
+    """
+    combined = torch.cat([dino_tokens, siglip_tokens], dim=-1)
+    return (grid_pool_tokens(combined, Hp, Wp, out_tokens=FINE_TOKENS),
+            grid_pool_tokens(combined, Hp, Wp, out_tokens=COARSE_TOKENS))
 
 
 def adapt_siglip_grid(tokens: torch.Tensor, grid_hw: Optional[Tuple[int, int]] = None, out_hw: Tuple[int, int] = (24, 24)) -> torch.Tensor:
@@ -289,6 +307,13 @@ class VisionFeatureCacher(nn.Module):
         tok = adapt_siglip_grid(tok, grid_hw=(Hs, Hs), out_hw=out_hw)
         return tok
 
+    @torch.inference_mode()
+    def encode_pil_fine_coarse(self, pil: Image.Image) -> Tuple[torch.Tensor, torch.Tensor]:
+        """One PIL image -> (fine (1, 64, C), coarse (1, 4, C)) via the legacy PIL preprocessing."""
+        tok_dino, Hp, Wp = self._encode_dino([pil])
+        tok_sigl = self._encode_siglip([pil], out_hw=(Hp, Wp))
+        return pool_fine_coarse(tok_dino, tok_sigl, Hp, Wp)
+
     # ---------------------------------------
     # Public API
     # ---------------------------------------
@@ -387,11 +412,8 @@ class VisionFeatureCacher(nn.Module):
         for t in range(T):
             Vt_dino = all_dino[:, t, :, :]  # (V, P, C_dino)
             Vt_sigl = all_sigl[:, t, :, :]  # (V, P, C_siglip)
-            Vt_cat = torch.cat([Vt_dino, Vt_sigl], dim=-1)  # (V, P, C_total)
-
             # GridPool on concatenated channels (paper):
-            Vfine = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=64)   # (V, 64, C_total)
-            Vcoarse = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=4)  # (V, 4, C_total)
+            Vfine, Vcoarse = pool_fine_coarse(Vt_dino, Vt_sigl, Hp, Wp)  # (V, 64, C), (V, 4, C)
 
             if save_per_view:
                 # Save two files per view using original filename base

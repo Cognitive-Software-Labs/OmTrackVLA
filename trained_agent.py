@@ -20,13 +20,12 @@ from pathlib import Path
 
 try:
     from model import OpenTrackVLA as PlannerModel, ModelConfig as PlannerConfig
-    from cache_gridpool import VisionFeatureCacher, VisionCacheConfig, grid_pool_tokens
+    from cache_gridpool import VisionFeatureCacher, VisionCacheConfig
 except Exception:
     PlannerModel = None  # type: ignore
     PlannerConfig = None  # type: ignore
     VisionFeatureCacher = None  # type: ignore
     VisionCacheConfig = None  # type: ignore
-    grid_pool_tokens = None  # type: ignore
 
 try:
     from open_trackvla_hf import OpenTrackVLAConfig, OpenTrackVLAForWaypoint
@@ -392,7 +391,7 @@ class GTBBoxAgent(AgentConfig):
 
     def _encode_frame_tokens(self, rgb_np: np.ndarray):
         """Encode an RGB frame (H,W,3, uint8-like) into (Vcoarse(4,C), Vfine(64,C))."""
-        if grid_pool_tokens is None:
+        if VisionFeatureCacher is None:
             return None, None
         enc = self._ensure_vision_cache()
         if enc is None:
@@ -400,12 +399,8 @@ class GTBBoxAgent(AgentConfig):
         try:
             from PIL import Image
             pil = Image.fromarray(rgb_np.astype(np.uint8))
-            tok_dino, Hp, Wp = enc._encode_dino([pil])
-            tok_sigl = enc._encode_siglip([pil], out_hw=(Hp, Wp))
-            Vt_cat = torch.cat([tok_dino, tok_sigl], dim=-1)  # (1, P, C_total)
-            Vfine = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=64)[0].float()   # (64, C)
-            Vcoarse = grid_pool_tokens(Vt_cat, Hp, Wp, out_tokens=4)[0].float()  # (4, C)
-            return Vcoarse, Vfine
+            Vfine, Vcoarse = enc.encode_pil_fine_coarse(pil)
+            return Vcoarse[0].float(), Vfine[0].float()
         except Exception:
             return None, None
 
