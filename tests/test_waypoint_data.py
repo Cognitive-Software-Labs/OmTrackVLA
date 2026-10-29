@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from PIL import Image
-from real_robot.waypoint_data import (prepare_pose_session, relative_waypoints,
+from real_robot.waypoint_data import (MissingReferenceCoverage, prepare_pose_session, relative_waypoints,
                                       validate_training_example)
 
 
@@ -54,7 +54,7 @@ class WaypointDataTests(unittest.TestCase):
         self.assertAlmostEqual(points[-1][2], .08)
 
     def test_missing_future_rejected(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(MissingReferenceCoverage):
             self.convert(poses(lambda t:(t,0,0)), current=.4)
 
     def test_pose_gap_rejected_even_at_exact_query_times(self):
@@ -112,6 +112,13 @@ class WaypointDataTests(unittest.TestCase):
             self.assertEqual(len(result['examples'][0]['images']),31)
             self.assertEqual(len(result['examples'][0]['waypoints']),8)
             self.assertEqual(result['examples'][0]['supervision']['session_id'],'pilot-1')
+            self.assertEqual(result['rejected_windows'],{})
+            pose_data['poses']=pose_data['poses'][:36]
+            (root/'poses.json').write_text(json.dumps(pose_data))
+            result=prepare_pose_session(session_manifest=session,prediction_offsets_s=OFFSETS,
+                                        max_pose_gap_s=.11,max_history_gap_s=.11)
+            self.assertEqual(result['accepted_windows'],0)
+            self.assertEqual(result['rejected_windows'],{'missing_future':3})
 
     def test_session_rejects_modified_rgb_and_missing_split(self):
         with tempfile.TemporaryDirectory() as td:

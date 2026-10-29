@@ -17,6 +17,10 @@ def number(value, name):
     return float(value)
 
 
+class MissingReferenceCoverage(ValueError):
+    """Requested time lies outside the reference poses; never extrapolated."""
+
+
 def wrap_yaw(angle):
     return math.atan2(math.sin(angle), math.cos(angle))
 
@@ -54,17 +58,20 @@ def relative_waypoints(poses, current_timestamp_s, prediction_offsets_s, *, max_
     enough that rotation between samples is unambiguous. max_pose_gap_s is a
     caller-chosen quality limit, not an assumed property of the dataset.
     """
-    rows = validate_poses(poses)
-    offsets = validate_offsets(prediction_offsets_s)
-    current = number(current_timestamp_s, 'current timestamp')
     gap = number(max_pose_gap_s, 'max pose gap')
     if gap <= 0:
         raise ValueError('max_pose_gap_s must be positive')
+    return _relative_waypoints(validate_poses(poses), number(current_timestamp_s, 'current timestamp'),
+                               validate_offsets(prediction_offsets_s), gap)
+
+
+def _relative_waypoints(rows, current, offsets, gap):
+    """relative_waypoints on already validated rows, offsets and gap limit."""
     times = [r[0] for r in rows]
 
     def at(t):
         if t < times[0] or t > times[-1]:
-            raise ValueError('Reference poses do not cover requested time; no extrapolation')
+            raise MissingReferenceCoverage('Reference poses do not cover requested time; no extrapolation')
         i = bisect.bisect_left(times, t)
         if i < len(times) and times[i] == t:
             return rows[i][1:]
@@ -228,12 +235,11 @@ def prepare_pose_session(session_manifest, *, prediction_offsets_s, max_pose_gap
         current = checked[index]
         current_pose_time = current['timestamp_s']+clock_offset
         try:
-            waypoints = relative_waypoints(reference_data['poses'], current_pose_time, offsets,
-                                            max_pose_gap_s=max_pose_gap_s)
-        except ValueError as exc:
-            reason = str(exc)
-            reject('missing_future' if 'cover requested time' in reason else 'pose_gap_or_invalid')
-            continue
+            waypoints = _relative_waypoints(poses, current_pose_time, offsets, max_pose_gap_s)
+        except MissingReferenceCoverage:
+            reject('missing_future'); continue
+        except ValueError:
+            reject('pose_gap_or_invalid'); continue
         example = dict(images=[r['image'] for r in window[:-1]], current=current['image'],
             instruction=instruction, waypoints=waypoints, valid_mask=[True]*8,
             session_id=session_id, split=split,

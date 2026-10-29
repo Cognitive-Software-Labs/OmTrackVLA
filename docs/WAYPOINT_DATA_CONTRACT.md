@@ -6,7 +6,7 @@ training provenance of the released checkpoint.
 
 ## Verified legacy behaviour
 
-| Layer | Contract actually now can we implemented |
+| Layer | Contract actually implemented |
 | --- | --- |
 | Network | Eight triples, scaled by `alpha_task`; the local checkpoint config uses XY scale 2 and no output tanh |
 | Text/vision | Text embeddings and pooled visual tokens condition an action token, followed by a waypoint MLP; no selected person ID is returned |
