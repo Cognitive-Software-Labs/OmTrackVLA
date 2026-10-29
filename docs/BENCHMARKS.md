@@ -13,6 +13,10 @@ Optional native-mode benchmarks require the tracking dependencies and weights.
 
 ## Measured reference (2026-10-27)
 
+Two hosts were measured: the Ridgeback's onboard RTX 5060 (8 GB), and Thor, a
+separate NVIDIA compute host with unified memory that the Ridgeback reaches over
+the network (see Remote service benchmark below).
+
 These are existing measurements on identical private lab RGB fixtures (40 frames,
 two repetitions), not a promise for other inputs or hardware. No background GPU
 compute processes were detected before each run; ordinary OS/robot services

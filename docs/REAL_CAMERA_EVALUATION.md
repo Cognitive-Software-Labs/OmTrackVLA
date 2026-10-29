@@ -29,7 +29,9 @@ paired model reply. The recorder requests fresh inferences and resets model
 history on the first frame. It never silently overwrites a prior clip. Stop
 the model service with Ctrl-C when recording is done.
 
-For camera-only clips, use `real_robot.record_prompt_clip` instead. To compare
+For camera-only clips, use `real_robot.record_prompt_clip --output NEW_CLIP_DIR
+--scene 'what is actually in view'` instead. `--scene` is required: describe
+clothing, positions and movement as observed, not as model labels. To compare
 two instructions on exactly the same saved frames, run
 `real_robot.evaluate_prompt_swap --clip CLIP_DIR --prompt-a TEXT_A --prompt-b
 TEXT_B --output NEW_OUTPUT_DIR`. It replays A/B/B/A with a fresh run boundary.

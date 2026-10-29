@@ -1,2 +1,0 @@
-# Compatibility entry point. CUDA wheels are installed by setup.sh.
--r requirements/inference.txt

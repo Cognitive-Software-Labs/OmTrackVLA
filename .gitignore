@@ -1,11 +1,8 @@
-habitat-lab
 data/humanoids
 data/sample
 data/scene_datasets
-ckpt_qwen5
 __pycache__/
 *.pyc
-__pycache__
 trackvla_vis/
 
 outputs/
@@ -35,13 +32,11 @@ data/local_demo/
 data/navmeshes/
 data/hab3_bench_assets
 sim_data/eval/
+sim_data/stt_train/
 results/
 .local-config/
 .env.local
 .env.*
-docs/CLEANUP.md
-docs/OMTRACKVLA_FOCUSED_COMPUTE_PLAN.md
-docs/RIDGEBACK_OMTRACK_LIVE.md
 # Credentials and private material
 *.pem
 *.key

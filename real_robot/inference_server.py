@@ -437,7 +437,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--allowed-client", default="127.0.0.1",
                         help="Only accept connections from this Ridgeback IPv4 address")
-    parser.add_argument("--port", type=int, default=18765)
+    parser.add_argument("--port", type=int, default=18781)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--mode", choices=("full", "perception", "planner", "model_only"), default="full")
     parser.add_argument("--history", type=int, default=31)

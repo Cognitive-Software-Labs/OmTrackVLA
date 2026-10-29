@@ -4,12 +4,13 @@ Validated on 2026-10-27, Ubuntu 24.04 Ridgeback / RTX 5060 (8 GB):
 
 - A new isolated Python 3.9 environment installed the pinned PyTorch 2.8 CUDA
   12.8 and inference dependencies through `setup.sh`; `pip check` passed.
-- The publication source was exported from Git's staged tree to a separate
-  directory without local outputs, model symlinks, environments or private data.
-- From that isolated source, `infer-sample.py` decoded the bundled sample video
+- The commit was exported to a separate directory containing only tracked files,
+  with no local outputs, linked model folders, environments or private data.
+- From that exported copy, `infer-sample.py` decoded the bundled sample video
   and produced a fresh finite 8×3 waypoint array on CUDA.
-- Nine protocol/repository contract tests and Python/shell syntax checks passed
-  from the source snapshot without weights or ROS dependencies.
+- The nine protocol/repository tests that existed then, plus Python/shell syntax
+  checks, passed from the exported copy without weights or ROS dependencies.
+  The suite has since grown; run it as described in the README.
 
 Model files for GPU validation were reused read-only from an existing local
 cache to avoid redundant multi-gigabyte downloads. Their downloaded revisions
@@ -27,16 +28,16 @@ The full simulator benchmark and fine-tuning were not run during packaging.
 They require the separate scene/avatar assets and procedures in TRAINING.md.
 No claim of identity accuracy, collision safety or physical following is made.
 
-The isolated publication source and new dependency environment were also tested
+The exported copy and new dependency environment were also tested
 against the existing Ridgeback compressed-camera topic. At least 3 fresh
 waypoint responses were observed; example inference time 166.8 ms.
 The browser JSON output contained eight finite waypoints paired to camera
-source stamps. Both owned validation processes were stopped after the bounded
-check. No camera driver was installed or robot movement publisher created.
+source stamps. The model service and preview started for this check were
+stopped afterwards. No camera driver was installed or robot movement publisher created.
 
 After initial publication, a separate shallow clone of
-`https://github.com/Cognitive-Software-Labs/OmTrackVLA.git` also passed all nine
-contract tests and real CUDA sample inference using the new dependency
+`https://github.com/Cognitive-Software-Labs/OmTrackVLA.git` also passed the nine
+tests of that time and real CUDA sample inference using the new dependency
 installation and read-only matching weight cache. The eight predicted waypoints
-matched the isolated staged-source validation. The public GitHub Actions workflow
+matched the exported-copy validation. The public GitHub Actions workflow
 runs the weight-free contracts and syntax checks; it does not run GPU inference.

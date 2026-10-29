@@ -13,7 +13,7 @@ training provenance of the released checkpoint.
 | Converter | For horizon 8, integrate nine commands, append after each integration; stored `trajectory` has nine post-action points |
 | Training/inference dataset classes | Read `waypoints` if present; otherwise derive labels from `actions`. The converter's `trajectory` field is ignored |
 | Action-derived targets | Start at origin, integrate command indices 0 through 7 into nine positions, then use rounded linspace indices `[0,1,2,3,5,6,7,8]` for eight targets |
-| Default action-derived timing | `DataConfig.default_dt=0.1`; resulting offsets `[0,.1,.2,.3,.5,.6,.7,.8]` seconds. The integration helper's standalone default is .2, so callers matter |
+| Default action-derived timing | `DataConfig.default_dt=0.1`; resulting offsets `[0,.1,.2,.3,.5,.6,.7,.8]` seconds. `integrate_actions_to_waypoints` itself defaults to `dt=0.2`, so a caller that omits `dt` gets different timing |
 | Rollout/local command conversion | Use predicted waypoint index 1 and divide components by .1 by default; these are proposed commands, not measured executed velocities |
 | Live history | Append current coarse features before forming a 31-slot history; pad with earliest available coarse features; current fine features are separate |
 | Dataset history | `images` excludes current in converter examples. On a short history the dataset loop fills earlier slots with current features before seeing earlier images. This differs from live history construction |
