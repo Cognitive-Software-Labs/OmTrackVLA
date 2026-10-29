@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run evaluation splits sequentially on one selected GPU.
 set -euo pipefail
-cd "$(dirname -- "${BASH_SOURCE[0]}")"
+# Habitat configs and data/ paths are relative to the repository root.
+cd "$(dirname -- "${BASH_SOURCE[0]}")/.."
 chunks="${CHUNKS:-30}"
 output="${SAVE_PATH:-sim_data/eval/stt}"
 config="${EXP_CONFIG:-habitat-lab/habitat/config/benchmark/nav/track/track_infer_stt.yaml}"
@@ -14,7 +15,7 @@ trap stop EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 for ((idx=0; idx<chunks; idx++)); do
-    "$runtime" run_eval.py --split-num "$chunks" --split-id "$idx" \
+    "$runtime" -m sim.run_eval --split-num "$chunks" --split-id "$idx" \
         --exp-config "$config" --run-type eval --save-path "$output" &
     child=$!
     wait "$child"

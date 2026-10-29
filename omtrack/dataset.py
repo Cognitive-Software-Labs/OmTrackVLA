@@ -1,6 +1,6 @@
 """Training/evaluation data: cached vision tokens, action- or waypoint-labelled examples.
 
-Single source for train.py. Examples come from a JSON list, a JSONL file or a
+Single source for training/train.py. Examples come from a JSON list, a JSONL file or a
 directory of JSONL files; vision tokens are read from <root>/vision_cache and
 encoded online (then cached) when missing. See docs/WAYPOINT_DATA_CONTRACT.md for
 how labels and short histories are formed.

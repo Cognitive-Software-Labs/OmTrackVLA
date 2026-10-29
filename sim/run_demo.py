@@ -75,14 +75,14 @@ def main():
     with gzip.open(dataset_path, 'wt') as f:
         json.dump({'episodes': [episode]}, f)
     # A fresh process avoids retaining a closed EGL context from preparation.
-    os.execv(sys.executable, [sys.executable, '-u', __file__, '--prepared', '--steps', str(args.steps)])
+    os.execv(sys.executable, [sys.executable, '-u', '-m', 'sim.run_demo', '--prepared', '--steps', str(args.steps)])
 
 
 def run_evaluation(steps):
     torch.set_num_threads(4)
     dataset_path = Path('data/local_demo/demo.json.gz')
     import habitat
-    import evt_bench
+    import sim.evt_bench  # noqa: F401  (registers Habitat plugins)
     from habitat.config import read_write
     from habitat.datasets import make_dataset
     from habitat.core.registry import registry
@@ -98,7 +98,7 @@ def run_evaluation(steps):
             human = sim.agents_mgr[0].articulated_agent
             for node in human.sim_obj.visual_scene_nodes:
                 node.semantic_id = episode.info['main_human_semantic_id']
-    from trained_agent import evaluate_agent
+    from sim.trained_agent import evaluate_agent
     config = habitat.get_config('habitat-lab/habitat/config/benchmark/nav/track/track_infer_stt.yaml')
     with read_write(config):
         config.habitat.dataset.data_path = str(dataset_path)

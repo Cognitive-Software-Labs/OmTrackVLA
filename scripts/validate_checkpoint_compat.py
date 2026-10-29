@@ -29,7 +29,7 @@ def main():
     import torch
     import transformers
     from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
-    from train import ModelConfig as TrainModelConfig, OmTrackVLA as TrainOpenTrackVLA
+    from training.train import ModelConfig as TrainModelConfig, OmTrackVLA as TrainOpenTrackVLA
     torch.set_num_threads(4)
     torch.manual_seed(187)
     if a.device == 'cuda' and not torch.cuda.is_available():

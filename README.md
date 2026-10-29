@@ -57,14 +57,14 @@ GPU driver are prerequisites: cloning alone cannot supply them.
 A small sample video is included in Git:
 
 ```bash
-./run-local.sh infer-sample.py
+./run_local.sh infer_sample.py
 ```
 
 This decodes a real sample frame and saves eight predicted waypoints in
 `outputs/sample-inference/prediction.json`. To use your own image:
 
 ```bash
-./run-local.sh infer-sample.py --image /path/to/image.jpg \
+./run_local.sh infer_sample.py --image /path/to/image.jpg \
   --instruction 'Follow the person wearing a black T-shirt.'
 ```
 

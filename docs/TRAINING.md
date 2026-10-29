@@ -28,11 +28,15 @@ snapshot; this repository does not pretend it is available.
 
 ## Data conversion and cached features
 
+Run every command from the repository root. Library code lives in `omtrack/`,
+training scripts in `training/` and simulator scripts in `sim/`; `PYTHONPATH=.`
+makes the package importable.
+
 ```bash
-python make_tracking_data.py --input_root sim_data/sample \
+PYTHONPATH=. python -m training.make_tracking_data --input_root sim_data/sample \
   --output_root data/sample --history 31 --horizon 8 --dt 0.1 \
   --instruction 'Follow the target person without collision.'
-python precache_frames.py --data_root data/sample \
+PYTHONPATH=. python -m training.precache_frames --data_root data/sample \
   --cache_root data/sample/vision_cache --batch_size 1 --image_size 384
 ```
 
@@ -54,7 +58,7 @@ train and test. Do not label model predictions as human-approved ground truth.
 
 ```bash
 python -m pip install -r requirements/training.txt
-python train.py --train_json data/sample/jsonl \
+PYTHONPATH=. python -m training.train --train_json data/sample/jsonl \
   --cache_root data/sample/vision_cache --out_dir ckpts/example \
   --llm_name "$PWD/models/Qwen3-0.6B" --batch_size 1 \
   --epochs 1 --lr 2e-5 --mixed_precision --save_trajectories
@@ -72,7 +76,7 @@ new model. Pretrained fine-tuning still requires a trainer initialization path,
 approved labels, session-level splits, and a measured single-step memory check.
 Do not assume an 8 GB inference fit implies training fits; measure a single step.
 
-Convert an approved trainer checkpoint with `convert_ckpt_to_hf.py --ckpt-path
+Convert an approved trainer checkpoint with `python -m training.convert_ckpt_to_hf --ckpt-path
 PATH --out-dir PATH --llm-name LOCAL_QWEN_PATH`. Keep the original checkpoint,
 configuration, source revision and dataset split. Re-run held-out accuracy and
 compute tests before deploying a modified model.
@@ -98,7 +102,7 @@ DINOv3 access is set up. The comparison requires bit-identical outputs.
 
 ```bash
 HF_MODEL_DIR="$PWD/models/OmTrackVLA-0.6B" \
-  OMTRACK_PYTHON="$(command -v python)" CUDA_VISIBLE_DEVICES=0 bash eval.sh
+  OMTRACK_PYTHON="$(command -v python)" CUDA_VISIBLE_DEVICES=0 bash sim/eval.sh
 ```
 
 `CHUNKS`, `SAVE_PATH` and `EXP_CONFIG` select partitions/output/task config.

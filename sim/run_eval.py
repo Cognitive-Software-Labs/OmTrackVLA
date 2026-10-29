@@ -1,9 +1,9 @@
 # Use cleaned agent by default, fallback to original if needed
-from trained_agent import evaluate_agent
+from sim.trained_agent import evaluate_agent
 import argparse
 import habitat
 from habitat.datasets import make_dataset
-import evt_bench
+import sim.evt_bench  # noqa: F401  (registers Habitat plugins)
 import numpy as np
 import random
 

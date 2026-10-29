@@ -41,7 +41,7 @@ def tensor_digest(torch, tensor):
 
 def planner_section(torch, assets, device):
     from omtrack.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
-    from train import ModelConfig as TrainModelConfig, OmTrackVLA as TrainOpenTrackVLA
+    from training.train import ModelConfig as TrainModelConfig, OmTrackVLA as TrainOpenTrackVLA
     checkpoint = assets / 'models/OmTrackVLA-0.6B'
     qwen = assets / 'models/Qwen3-0.6B'
     config = OmTrackVLAConfig.from_pretrained(str(checkpoint), local_files_only=True)

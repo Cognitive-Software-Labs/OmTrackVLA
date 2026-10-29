@@ -14,5 +14,5 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Syntax
         run: |
-          python -m compileall -q real_robot scripts tests omtrack train.py
-          bash -n setup.sh run-local.sh eval.sh real_robot/start_omtrack_ridgeback.sh real_robot/start_omtrack_preview.sh
+          python -m compileall -q real_robot scripts tests omtrack training sim infer_sample.py
+          bash -n setup.sh run_local.sh sim/eval.sh sim/stt_data.sh real_robot/start_omtrack_ridgeback.sh real_robot/start_omtrack_preview.sh

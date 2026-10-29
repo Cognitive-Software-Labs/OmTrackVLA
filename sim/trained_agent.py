@@ -18,6 +18,9 @@ from collections import deque
 from pathlib import Path
 
 
+# Checkpoints, models/ and download caches live at the repository root.
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 try:
     from omtrack.model import OmTrackVLA as PlannerModel, ModelConfig as PlannerConfig
     from omtrack.vision import VisionFeatureCacher, VisionCacheConfig
@@ -311,7 +314,7 @@ class GTBBoxAgent(AgentConfig):
                 return
         ckpt_path = None
         try:
-            ckpt_dir = os.path.join(os.path.dirname(__file__), 'ckpts')
+            ckpt_dir = os.path.join(REPO_ROOT, 'ckpts')
             env_ckpt = os.environ.get('CKPT')
             if env_ckpt and os.path.isfile(env_ckpt):
                 ckpt_path = env_ckpt
@@ -324,7 +327,7 @@ class GTBBoxAgent(AgentConfig):
         if ckpt_path:
             self._planner_ckpt_path = ckpt_path
             return
-        default_hf = os.path.join(os.path.dirname(__file__), 'models', 'OmTrackVLA-0.6B')
+        default_hf = os.path.join(REPO_ROOT, 'models', 'OmTrackVLA-0.6B')
         if self._is_hf_dir(default_hf):
             self._hf_model_dir = default_hf
 
@@ -332,7 +335,7 @@ class GTBBoxAgent(AgentConfig):
         if snapshot_download is None:
             print("[planner] huggingface_hub is not installed; cannot download HF_MODEL_ID.")
             return None
-        cache_root = os.path.join(os.path.dirname(__file__), 'hf_downloads')
+        cache_root = os.path.join(REPO_ROOT, 'hf_downloads')
         os.makedirs(cache_root, exist_ok=True)
         safe_name = repo_id.replace('/', '__')
         local_dir = os.path.join(cache_root, safe_name)

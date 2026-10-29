@@ -1,8 +1,8 @@
-from baseline_agent import evaluate_agent
+from sim.baseline_agent import evaluate_agent
 import argparse
 import habitat
 from habitat.datasets import make_dataset
-import evt_bench
+import sim.evt_bench  # noqa: F401  (registers Habitat plugins)
 import numpy as np
 import random
 import os
@@ -80,7 +80,7 @@ def run_exp(run_type: str, exp_config: str, split_id: int, split_num: int, save_
     resolved_target_id = target_id
     if resolved_target_id is None and target_name:
         try:
-            infos_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "humanoid_infos.json"))
+            infos_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "humanoid_infos.json"))
             with open(infos_path, "r") as f:
                 infos = json.load(f)
             for entry in infos:
