@@ -77,6 +77,23 @@ PATH --out-dir PATH --llm-name LOCAL_QWEN_PATH`. Keep the original checkpoint,
 configuration, source revision and dataset split. Re-run held-out accuracy and
 compute tests before deploying a modified model.
 
+## Checking a code change does not change outputs
+
+Before refactoring model, loader or preprocessing code, record exact outputs at
+the current commit, then compare after each change on the same GPU and stack:
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/capture_reference_outputs.py \
+  --output outputs/reference/before.json
+PYTHONPATH=. .venv/bin/python scripts/capture_reference_outputs.py \
+  --compare outputs/reference/before.json
+```
+
+The `planner` section needs only the OmTrackVLA and Qwen weights and runs both
+the released loader and the trainer class on fixed random features. The
+`pipeline` section also needs DINOv3 and SigLIP; use `--sections planner` until
+DINOv3 access is set up. The comparison requires bit-identical outputs.
+
 ## Simulator evaluation
 
 ```bash
