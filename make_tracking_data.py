@@ -57,18 +57,6 @@ def extract_frames_ffmpeg(ffmpeg_path: str, mp4_path: Path, out_dir: Path, quali
     return list_sorted_images(out_dir)
 
 
-def sample_indices(num_items: int, target_count: int) -> List[int]:
-    """Evenly sample indices from [0, num_items-1] to length target_count (<= num_items)."""
-    if target_count <= 0 or num_items <= 0:
-        return []
-    if target_count >= num_items:
-        return list(range(num_items))
-    # Even spacing
-    import numpy as np
-    positions = np.linspace(0, num_items - 1, target_count)
-    return [int(round(p)) for p in positions]
-
-
 def pad_to_length(items: List, length: int) -> List:
     if length <= 0:
         return []
@@ -136,46 +124,6 @@ def integrate_future_trajectory(
         theta += wz * dt
         trajectory.append([x, y, theta])
     return trajectory
-
-
-def build_indicator_curve(
-    actions: List[List[float]], start_index: int, horizon: int, dt: float
-) -> List[List[float]]:
-    """Return a short local curve anchored at origin as [[x,y], ...].
-
-    Integrates actions from start_index for `horizon` steps (clamped),
-    accumulating displacement in the local robot frame.
-    """
-    x, y, theta = 0.0, 0.0, 0.0
-    curve_xy: List[List[float]] = []
-    if horizon <= 0 or start_index >= len(actions):
-        return curve_xy
-    end_index = min(len(actions) - 1, start_index + horizon)
-    # Always include origin as the first point for stability
-    curve_xy.append([0.0, 0.0])
-    for k in range(start_index, end_index + 1):
-        vx, vy, wz = actions[k]
-        dx_global = vx * math.cos(theta) - vy * math.sin(theta)
-        dy_global = vx * math.sin(theta) + vy * math.cos(theta)
-        x += dx_global * dt
-        y += dy_global * dt
-        theta += wz * dt
-        curve_xy.append([x, y])
-    return curve_xy
-
-
-def make_episode_json(
-    rel_frame_paths: List[str],
-    actions_7d: List[List[float]],
-    episode_id: str,
-    instruction: str,
-) -> dict:
-    return {
-        "episode_id": episode_id,
-        "frames": rel_frame_paths,
-        "actions": actions_7d,
-        "instruction": instruction,
-    }
 
 
 def collect_episode_pairs(input_root: Path) -> List[EpisodePaths]:
@@ -343,8 +291,6 @@ def main():
                     continue
                 # Integrate and slice from original actions
                 traj = integrate_future_trajectory(actions_full, start_index=j, horizon=horizon, dt=dt)
-                # Build indicator curve (x,y only), same horizon and dt
-                #indicator_xy = build_indicator_curve(actions_full, start_index=j, horizon=horizon, dt=dt)
                 # Include the corresponding future actions in the sample (exact horizon+1 length)
                 end_index = j + horizon
                 future_actions = actions_full[j : end_index + 1]
