@@ -44,7 +44,6 @@ class OpenTrackVLAForWaypoint(PreTrainedModel):
         instructions: List[str],
         yaw_hist: Optional[torch.Tensor] = None,
         yaw_curr: Optional[torch.Tensor] = None,
-        bbox_feat: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         return self.model(
             coarse_tokens,
@@ -54,7 +53,6 @@ class OpenTrackVLAForWaypoint(PreTrainedModel):
             instructions,
             yaw_hist=yaw_hist,
             yaw_curr=yaw_curr,
-            bbox_feat=bbox_feat,
         )
 
     @property
