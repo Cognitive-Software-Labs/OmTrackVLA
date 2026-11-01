@@ -103,7 +103,7 @@ def pipeline_section(torch, assets, device):
     for name, cuda_preprocess in (('legacy_pil', False), ('cuda_preprocess', device.type == 'cuda')):
         if name == 'cuda_preprocess' and not cuda_preprocess:
             continue
-        model = OmTrackInference(assets, str(device), 31, .1, 1, .35, .25, .25, 8, 3, .72,
+        model = OmTrackInference(assets, str(device), 31, .1, 1,
                                  mode='model_only', cuda_vision_preprocess=cuda_preprocess)
         outputs = []
         for index, rgb in enumerate(frames):

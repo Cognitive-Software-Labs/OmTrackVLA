@@ -124,7 +124,7 @@ def main():
         began = time.perf_counter()
         if a.mode == 'direct':
             from methods.omtrack_vla.deploy.inference_server import OmTrackInference
-            model = OmTrackInference(a.assets, 'cuda', 31, .1, 1, .3, .25, .35, 15, 3, .5,
+            model = OmTrackInference(a.assets, 'cuda', 31, .1, 1,
                                      planner_rate=1e9, cuda_vision_preprocess=False, mode='model_only')
             torch.cuda.synchronize()
         else:

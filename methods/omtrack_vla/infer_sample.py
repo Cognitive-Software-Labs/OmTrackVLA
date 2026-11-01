@@ -30,7 +30,7 @@ def main():
         if not ok:frame=None
     if frame is None:raise RuntimeError('Cannot read the requested image/video')
     rgb=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
-    model=OmTrackInference(a.assets.resolve(),a.device,31,.1,1,.35,.25,.25,8,3,.72,
+    model=OmTrackInference(a.assets.resolve(),a.device,31,.1,1,
                             mode='model_only',cuda_vision_preprocess=False)
     result=model.infer(rgb,a.instruction,reset_target=True)
     points=np.asarray(result['trajectory'],dtype=float)

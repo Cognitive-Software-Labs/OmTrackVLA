@@ -63,7 +63,7 @@ class ModelClientTests(unittest.TestCase):
             client.infer(b'jpeg', 'Follow me.', 1, False)
 
     def test_wrong_server_mode_is_rejected(self):
-        port = serve_once(lambda req: {'ok': True, 'request_id': req['request_id'], 'mode': 'full'})
+        port = serve_once(lambda req: {'ok': True, 'request_id': req['request_id'], 'mode': 'planner'})
         with ModelClient(port) as client, self.assertRaises(ValueError):
             client.infer(b'jpeg', 'Follow me.', 1, False, mode='model_only')
 

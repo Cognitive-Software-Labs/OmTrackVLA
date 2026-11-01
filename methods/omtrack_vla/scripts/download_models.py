@@ -15,15 +15,12 @@ MODELS = {
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--models-dir', type=Path, default=Path(__file__).resolve().parents[3]/'models')
-    p.add_argument('--tracking', action='store_true', help='Also download optional local grounding/YOLO assets')
     p.add_argument('--revisions', type=Path, default=Path(__file__).resolve().parents[3]/'requirements/model-revisions.json', help='JSON mapping local model names to exact Hugging Face commit SHAs')
     a = p.parse_args()
     if a.models_dir.is_symlink():
         p.error('Destination is a shared symlink. Use a new --models-dir; existing shared weights must remain read-only.')
     from huggingface_hub import HfApi, snapshot_download
     names = dict(MODELS)
-    if a.tracking:
-        names['grounding-dino-tiny'] = 'IDEA-Research/grounding-dino-tiny'
     pinned = json.loads(a.revisions.read_text()) if a.revisions else {}
     manifest = {}
     for name, repo in names.items():

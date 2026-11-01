@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""OmTrackVLA inference service for the ROS 2 Ridgeback bridge."""
+"""OmTrackVLA inference service for the ROS 2 Ridgeback bridge.
+
+Modes: ``planner`` plans for a target box chosen by the robot's own identity
+stage (sent with each request); ``model_only`` runs the model with no target.
+"""
 
 from __future__ import annotations
 
@@ -37,18 +41,11 @@ class OmTrackInference:
         history: int,
         prediction_dt: float,
         waypoint_index: int,
-        grounding_box_threshold: float,
-        grounding_text_threshold: float,
-        person_threshold: float,
-        grounding_interval: int,
-        target_acquire_frames: int,
-        reid_match_threshold: float,
         planner_rate: float = 2.0,
-        target_view_width: int = 512,
         cuda_vision_preprocess: bool = True,
-        mode: str = "full",
+        mode: str = "planner",
     ):
-        if mode not in ("full", "perception", "planner", "model_only"):
+        if mode not in ("planner", "model_only"):
             raise ValueError(f"unsupported inference mode: {mode}")
         self.mode = mode
         self.project_dir = project_dir
@@ -60,53 +57,39 @@ class OmTrackInference:
         self.last_prompt: Optional[str] = None
         self.target_was_valid = False
         self.planner_period = 1.0 / max(0.1, float(planner_rate))
-        self.target_view_width = max(160, int(target_view_width))
         self.cuda_vision_preprocess = bool(cuda_vision_preprocess and self.device.type == "cuda")
         self.next_planner_due = 0.0
         self.last_planner_time: Optional[float] = None
         self.last_planner_command: Optional[list] = None
         self.last_planner_trajectory: Optional[list] = None
 
-        if mode != "perception":
-            checkpoint = project_dir / "models" / "OmTrackVLA-0.6B"
-            qwen = project_dir / "models" / "Qwen3-0.6B"
-            dino = project_dir / "models" / "dinov3-vits16-pretrain-lvd1689m"
-            siglip = project_dir / "models" / "siglip-so400m-patch14-384"
-            required = [
-                checkpoint / "model.safetensors",
-                qwen / "model.safetensors",
-                dino / "model.safetensors",
-                siglip / "model.safetensors",
-            ]
-            missing = [str(path) for path in required if not path.is_file()]
-            if missing:
-                raise FileNotFoundError("missing model files:\n  " + "\n  ".join(missing))
+        checkpoint = project_dir / "models" / "OmTrackVLA-0.6B"
+        qwen = project_dir / "models" / "Qwen3-0.6B"
+        dino = project_dir / "models" / "dinov3-vits16-pretrain-lvd1689m"
+        siglip = project_dir / "models" / "siglip-so400m-patch14-384"
+        required = [
+            checkpoint / "model.safetensors",
+            qwen / "model.safetensors",
+            dino / "model.safetensors",
+            siglip / "model.safetensors",
+        ]
+        missing = [str(path) for path in required if not path.is_file()]
+        if missing:
+            raise FileNotFoundError("missing model files:\n  " + "\n  ".join(missing))
 
-            os.environ["DINOV3_MODEL_PATH"] = str(dino)
-            os.environ["SIGLIP_MODEL_PATH"] = str(siglip)
-            from methods.omtrack_vla.vision import VisionCacheConfig, VisionFeatureCacher, pool_fine_coarse
-            from methods.omtrack_vla.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
+        os.environ["DINOV3_MODEL_PATH"] = str(dino)
+        os.environ["SIGLIP_MODEL_PATH"] = str(siglip)
+        from methods.omtrack_vla.vision import VisionCacheConfig, VisionFeatureCacher, pool_fine_coarse
+        from methods.omtrack_vla.hf import OmTrackVLAConfig, OmTrackVLAForWaypoint
 
-            config = OmTrackVLAConfig.from_pretrained(str(checkpoint))
-            config.llm_name = str(qwen)
-            self.planner = OmTrackVLAForWaypoint.from_pretrained(
-                str(checkpoint), config=config, low_cpu_mem_usage=True
-            ).eval().to(self.device)
-            vision_config = VisionCacheConfig(image_size=384, batch_size=1, device=str(self.device))
-            self.vision = VisionFeatureCacher(vision_config).eval()
-            self.pool_fine_coarse = pool_fine_coarse
-        if mode in ("full", "perception"):
-            from methods.omtrack_vla.deploy.grounding import TargetPerception
-            self.target_perception = TargetPerception(
-                project_dir,
-                device=device,
-                grounding_box_threshold=grounding_box_threshold,
-                grounding_text_threshold=grounding_text_threshold,
-                person_threshold=person_threshold,
-                grounding_interval=grounding_interval,
-                acquire_frames=target_acquire_frames,
-                reid_match_threshold=reid_match_threshold,
-            )
+        config = OmTrackVLAConfig.from_pretrained(str(checkpoint))
+        config.llm_name = str(qwen)
+        self.planner = OmTrackVLAForWaypoint.from_pretrained(
+            str(checkpoint), config=config, low_cpu_mem_usage=True
+        ).eval().to(self.device)
+        vision_config = VisionCacheConfig(image_size=384, batch_size=1, device=str(self.device))
+        self.vision = VisionFeatureCacher(vision_config).eval()
+        self.pool_fine_coarse = pool_fine_coarse
 
     def reset(self) -> None:
         self.coarse_history.clear()
@@ -115,37 +98,16 @@ class OmTrackInference:
         self.last_planner_command = None
         self.last_planner_trajectory = None
 
-    def _encode_target_view(self, annotated_bgr: np.ndarray) -> str:
-        """Encode the target-manager view; model coordinates are displayed in RViz."""
-        target_view = annotated_bgr
-        if target_view.shape[1] > self.target_view_width:
-            scale = self.target_view_width / float(target_view.shape[1])
-            target_view = cv2.resize(
-                target_view,
-                (self.target_view_width, max(1, int(round(target_view.shape[0] * scale)))),
-                interpolation=cv2.INTER_AREA,
-            )
-        encoded_ok, encoded_jpeg = cv2.imencode(
-            ".jpg", target_view, [cv2.IMWRITE_JPEG_QUALITY, 82]
-        )
-        if not encoded_ok:
-            raise RuntimeError("failed to encode target visualization")
-        return base64.b64encode(encoded_jpeg.tobytes()).decode("ascii")
-
     @torch.inference_mode()
     def infer(self, rgb: np.ndarray, prompt: str, reset_target: bool = False,
               stages: Optional[dict] = None, target_override: Optional[dict] = None) -> dict:
         synchronize = (lambda: torch.cuda.synchronize(self.device)) if stages is not None and self.device.type == "cuda" else None
         stage_timer = lambda name: timed(stages, name, synchronize)
         if reset_target:
-            if self.mode in ("full", "perception"):
-                self.target_perception.reset()
             self.reset()
             self.target_was_valid = False
         if prompt != self.last_prompt:
             self.reset()
-            if self.mode in ("full", "perception"):
-                self.target_perception.reset()
             self.last_prompt = prompt
             self.target_was_valid = False
 
@@ -154,11 +116,8 @@ class OmTrackInference:
                                      reason="external_target_tracker_disabled", track_id=None,
                                      bbox=None, grounding_score=None, person_score=None,
                                      reid_similarity=None, people_count=None, debug={})
-        elif self.mode == "planner":
-            target = validate_external_target(target_override, rgb.shape)
         else:
-            with stage_timer("target_total"):
-                target = self.target_perception.update(rgb, prompt, stage_timer=stage_timer)
+            target = validate_external_target(target_override, rgb.shape)
         result = {
             "target_query": target.query,
             "target_state": target.state,
@@ -172,10 +131,6 @@ class OmTrackInference:
             "target_people_count": target.people_count,
             "target_debug": target.debug,
         }
-        if self.mode == "perception":
-            with stage_timer("target_view_encode"):
-                result["target_image_b64"] = self._encode_target_view(target.annotated_bgr)
-            return result
         if not target.valid and self.mode != "model_only":
             if self.target_was_valid:
                 self.reset()
@@ -189,9 +144,6 @@ class OmTrackInference:
                 "trajectory_valid": False,
                 "trajectory_reason": "target_not_locked",
             })
-            if self.mode != "planner":
-                with stage_timer("target_view_encode"):
-                    result["target_image_b64"] = self._encode_target_view(target.annotated_bgr)
             return result
         if not self.target_was_valid and self.mode != "model_only":
             self.reset()
@@ -259,7 +211,6 @@ class OmTrackInference:
                                     len(command) == 3 and all(math.isfinite(value) for value in command))
                 trajectory_reason = "finite_model_trajectory" if trajectory_valid else "invalid_model_trajectory"
             else:
-                from methods.omtrack_vla.deploy.grounding import trajectory_is_directionally_consistent
                 trajectory_valid, trajectory_reason = trajectory_is_directionally_consistent(
                     target.bbox, rgb.shape[1], trajectory_cpu,
                 )
@@ -272,10 +223,37 @@ class OmTrackInference:
             "trajectory_valid": bool(trajectory_valid and (target.valid or self.mode == "model_only")),
             "trajectory_reason": trajectory_reason,
         })
-        if self.mode in ("full", "perception"):
-            with stage_timer("target_view_encode"):
-                result["target_image_b64"] = self._encode_target_view(target.annotated_bgr)
         return result
+
+
+def trajectory_is_directionally_consistent(
+    bbox: Optional[list],
+    image_width: int,
+    trajectory: list,
+    target_deadband: float = 0.18,
+    opposite_tolerance: float = 0.08,
+) -> tuple:
+    """Reject only a strong left/right contradiction between target and path.
+
+    This RGB-only check cannot validate metric following distance.  It is kept
+    deliberately coarse so obstacle-avoidance curvature is not rejected merely
+    because the path does not point straight at the target.
+    """
+    if bbox is None or image_width <= 0 or not trajectory:
+        return False, "target_or_trajectory_missing"
+    center_x = 0.5 * (float(bbox[0]) + float(bbox[2]))
+    target_direction = (0.5 * image_width - center_x) / (0.5 * image_width)
+    if abs(target_direction) <= target_deadband:
+        return True, "target_centered"
+    waypoint = trajectory[min(1, len(trajectory) - 1)]
+    if len(waypoint) < 2:
+        return False, "trajectory_waypoint_invalid"
+    forward, lateral = float(waypoint[0]), float(waypoint[1])
+    yaw = float(waypoint[2]) if len(waypoint) >= 3 else 0.0
+    path_direction = math.atan2(lateral, max(0.03, abs(forward))) + 0.5 * yaw
+    if target_direction * path_direction < 0.0 and abs(path_direction) > opposite_tolerance:
+        return False, "trajectory_points_away_from_target"
+    return True, "direction_consistent"
 
 
 def validate_external_target(value: object, image_shape: tuple) -> SimpleNamespace:
@@ -352,14 +330,7 @@ def serve(args: argparse.Namespace) -> None:
         args.history,
         args.prediction_dt,
         args.waypoint_index,
-        args.grounding_box_threshold,
-        args.grounding_text_threshold,
-        args.person_threshold,
-        args.grounding_interval,
-        args.target_acquire_frames,
-        args.reid_match_threshold,
         args.planner_rate,
-        args.target_view_width,
         not args.legacy_vision_preprocess,
         args.mode,
     )
@@ -439,19 +410,12 @@ def parse_args() -> argparse.Namespace:
                         help="Only accept connections from this Ridgeback IPv4 address")
     parser.add_argument("--port", type=int, default=MODEL_PORT)
     parser.add_argument("--device", default="cuda")
-    parser.add_argument("--mode", choices=("full", "perception", "planner", "model_only"), default="full")
+    parser.add_argument("--mode", choices=("planner", "model_only"), default="planner")
     parser.add_argument("--history", type=int, default=31)
     parser.add_argument("--prediction-dt", type=float, default=0.1)
     parser.add_argument("--waypoint-index", type=int, default=1)
     parser.add_argument("--socket-timeout", type=float, default=10.0)
-    parser.add_argument("--grounding-box-threshold", type=float, default=0.35)
-    parser.add_argument("--grounding-text-threshold", type=float, default=0.25)
-    parser.add_argument("--person-threshold", type=float, default=0.25)
-    parser.add_argument("--grounding-interval", type=int, default=8)
-    parser.add_argument("--target-acquire-frames", type=int, default=3)
-    parser.add_argument("--reid-match-threshold", type=float, default=0.72)
     parser.add_argument("--planner-rate", type=float, default=2.0)
-    parser.add_argument("--target-view-width", type=int, default=512)
     parser.add_argument(
         "--legacy-vision-preprocess",
         action="store_true",

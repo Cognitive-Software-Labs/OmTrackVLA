@@ -72,7 +72,7 @@ def main():
         frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     torch.set_num_threads(4)
     torch.manual_seed(0)
-    model = OmTrackInference(a.assets.resolve(), a.device, 31, .1, 1, .35, .25, .25, 8, 3, .72,
+    model = OmTrackInference(a.assets.resolve(), a.device, 31, .1, 1,
                              mode='model_only', cuda_vision_preprocess=False)
     a.output.mkdir(parents=True)
     metadata = dict(clip=str(a.clip.resolve()), manifest=manifest,
