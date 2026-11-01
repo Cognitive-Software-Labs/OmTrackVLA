@@ -12,7 +12,7 @@ flowchart LR
         C[camera_0<br/>RGB]
     end
     subgraph perception
-        M[scan merge]
+        M[scan merge<br/>DyNAMO-Ridgeback]
         LP[lidar people]
         CP[camera people]
     end
@@ -31,7 +31,7 @@ flowchart LR
 
 | Stage | Input → output | Baseline method | Rate target |
 |---|---|---|---|
-| **perception** (lidar) | two `LaserScan` → `LidarPerson[]` in `base_link` | Merge both scans to 360°; leg detector or DR-SPAAM | scan rate |
+| **perception** (lidar) | merged 360° `LaserScan` → `LidarPerson[]` in `base_link` | Leg detector or DR-SPAAM. The front + rear scan merge already exists in the DyNAMO-Ridgeback repo; reuse it, do not rebuild it | scan rate |
 | **perception** (camera) | image → `CameraTrack[]` | YOLO person boxes, BoT-SORT association, injected appearance embedding | camera rate |
 | **tracking** | `LidarPerson[]` + `CameraTrack[]` → `PersonTrack[]` in `odom` | One constant-velocity Kalman filter per person; camera boxes matched to lidar tracks by bearing | scan rate |
 | **identity** | `PersonTrack[]` → `LeaderEstimate` | Lock onto the nearest person in front; confirm with a re-ID gallery (OSNet-AIN) plus track continuity; never hand the lock to someone else | scan rate |

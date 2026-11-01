@@ -27,7 +27,8 @@ flowchart LR
 | Stage | Package | Status |
 |---|---|---|
 | Camera people (YOLO + BoT-SORT) | [`leader_follow/perception`](leader_follow/perception) | implemented, appearance embedding pluggable |
-| Lidar people, scan merge | [`leader_follow/perception`](leader_follow/perception) | planned |
+| Scan merge (front + rear → 360°) | DyNAMO-Ridgeback | exists, reuse it |
+| Lidar people | [`leader_follow/perception`](leader_follow/perception) | planned |
 | Fusion + tracker | [`leader_follow/tracking`](leader_follow/tracking) | planned |
 | Leader identity (lock-on state machine) | [`leader_follow/identity`](leader_follow/identity) | implemented; OSNet re-ID and "nearest person in front" lock-on planned |
 | Follow controller | [`leader_follow/control`](leader_follow/control) | planned |
