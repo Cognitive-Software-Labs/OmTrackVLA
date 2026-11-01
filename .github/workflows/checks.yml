@@ -16,5 +16,5 @@ jobs:
           python -m unittest discover -s methods/omtrack_vla/tests -t . -v
       - name: Syntax
         run: |
-          python -m compileall -q leader_follow robot tests methods -x 'habitat-lab'
-          bash -n setup.sh methods/omtrack_vla/run_local.sh methods/omtrack_vla/sim/eval.sh methods/omtrack_vla/sim/stt_data.sh methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh methods/omtrack_vla/ridgeback/start_omtrack_preview.sh
+          python -m compileall -q leader_follow robot tests methods
+          bash -n setup.sh methods/omtrack_vla/run_local.sh methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh methods/omtrack_vla/ridgeback/start_omtrack_preview.sh

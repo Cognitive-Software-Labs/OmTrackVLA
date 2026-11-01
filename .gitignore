@@ -1,6 +1,3 @@
-methods/omtrack_vla/data/humanoids
-methods/omtrack_vla/data/sample
-methods/omtrack_vla/data/scene_datasets
 __pycache__/
 *.pyc
 trackvla_vis/
@@ -29,10 +26,6 @@ hf_downloads/
 # Generated simulator data and local-only session notes
 methods/omtrack_vla/data/benchmark/
 methods/omtrack_vla/data/local_demo/
-methods/omtrack_vla/data/navmeshes/
-methods/omtrack_vla/data/hab3_bench_assets
-methods/omtrack_vla/sim_data/eval/
-methods/omtrack_vla/sim_data/stt_train/
 results/
 .local-config/
 .env.local

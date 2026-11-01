@@ -20,11 +20,10 @@ class RepositoryTests(unittest.TestCase):
         tree=ast.parse((ROOT/'methods/omtrack_vla/ridgeback/live_omtrack_preview.py').read_text())
         self.assertFalse(any(isinstance(n,ast.Attribute) and n.attr=='create_publisher' for n in ast.walk(tree)))
     def test_repo_imports_point_at_existing_modules(self):
-        # Most scripts can't be run here (Habitat, ROS, GPU), so check statically
+        # Most scripts can't be run here (ROS, GPU), so check statically
         # that every import of a repository module resolves.
         local=('leader_follow','robot','methods')
-        habitat=ROOT/'methods/omtrack_vla/habitat-lab'
-        sources=[p for d in local+('tests',) for p in (ROOT/d).rglob('*.py') if habitat not in p.parents]
+        sources=[p for d in local+('tests',) for p in (ROOT/d).rglob('*.py')]
         for path in sources:
             for node in ast.walk(ast.parse(path.read_text())):
                 if isinstance(node,ast.ImportFrom) and node.level==0 and node.module:
@@ -44,7 +43,9 @@ class RepositoryTests(unittest.TestCase):
         for path in (ROOT/'leader_follow').rglob('*.py'):
             with self.subTest(file=str(path.relative_to(ROOT))):
                 self.assertNotIn('methods',path.read_text())
-    def test_core_inference_has_no_habitat_import(self):
-        tree=ast.parse((ROOT/'methods/omtrack_vla/infer_sample.py').read_text())
-        names=[n.module or '' for n in ast.walk(tree) if isinstance(n,ast.ImportFrom)]
-        self.assertFalse(any(n.startswith(('habitat','methods.omtrack_vla.sim')) for n in names))
+    def test_nothing_imports_habitat(self):
+        for path in [p for d in ('leader_follow','robot','methods') for p in (ROOT/d).rglob('*.py')]:
+            for node in ast.walk(ast.parse(path.read_text())):
+                names=[node.module or ''] if isinstance(node,ast.ImportFrom) else [a.name for a in node.names] if isinstance(node,ast.Import) else []
+                with self.subTest(file=str(path.relative_to(ROOT))):
+                    self.assertFalse(any(n.split('.')[0] in ('habitat','habitat_sim') for n in names))

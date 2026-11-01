@@ -30,11 +30,11 @@ The rollout loop observes an image and computes an action before `env.step`,
 then saves that requested action as `base_velocity`. It saves distance/facing
 metrics after stepping. It does not save a timestamped realised robot pose trace.
 
-The currently checked-in STT config sets `ctrl_freq: 40` and robot action scales
+The STT config (removed with the Habitat stack; see Git history) set `ctrl_freq: 40` and robot action scales
 15 longitudinal, 10 lateral and 6.28 angular. The non-cylinder action clips input
 components to [-1,1], applies its scales and integrates against simulator control
 timing. Navigation-mesh collision filtering/sliding may change actual movement.
-These values describe current source/configuration, not proven settings used to
+These values describe that removed source/configuration, not proven settings used to
 produce the old sample videos. An MP4's 10 fps does not prove a .1-second physical
 action duration. The old sample metadata does not resolve this discrepancy.
 

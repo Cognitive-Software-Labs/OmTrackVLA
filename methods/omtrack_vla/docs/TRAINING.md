@@ -1,49 +1,28 @@
-# Training and simulator evaluation
+# Training
 
-Core inference does not require Habitat. Simulator reproduction additionally
-requires Habitat-Sim 0.3.1 with Bullet, the bundled modified Habitat-Lab, licensed
-scene datasets, avatars and robot assets referenced by the episode/config files.
-
-## Optional simulator environment
-
-```bash
-conda env create -f requirements/simulation-environment.yml
-conda activate omtrack-sim
-python -m pip install torch==2.8.0 torchvision==0.23.0 \
-  --index-url https://download.pytorch.org/whl/cu128
-python -m pip install -r requirements/simulation.txt
-python -m pip check
-```
-
-Use `OMTRACK_PYTHON="$(command -v python)"` with the launchers. The simulator
-combination is preserved from upstream; installation/scene compatibility on a
-fresh host must be checked independently of the core inference validation.
-
-Obtain the HM3D/MP3D scene files and humanoid assets following the respective
-providers' access/license instructions and the original TrackVLA dataset setup.
-Populate `methods/omtrack_vla/data/scene_datasets/` and `methods/omtrack_vla/data/humanoids/`. Do not replace these with
-unrelated scenes and describe the resulting demo as the published benchmark.
-The upstream README references a humanoid downloader absent from its source
-snapshot; this repository does not pretend it is available.
+The Habitat simulator stack (EVT-Bench episodes, modified Habitat-Lab, rollout
+and evaluation scripts) was removed from this repository; simulation for the
+leader-following work uses the DyNAMO-Ridgeback simulators (Gazebo, Isaac Sim)
+instead. It remains in Git history before the removal commit. The two sample
+rollouts in `samples/` were rendered by it and are kept as training-data and
+inference fixtures.
 
 ## Data conversion and cached features
 
-Run every command from the repository root. Library code lives in `methods/omtrack_vla/`,
-training scripts in `methods/omtrack_vla/training/` and simulator scripts in `methods/omtrack_vla/sim/`;
-`PYTHONPATH=.` makes the package importable. The simulator launchers change into
-`methods/omtrack_vla/`, so Habitat configs and `data/` paths there are relative to it.
+Run every command from the repository root. Library code lives in
+`methods/omtrack_vla/` and training scripts in `methods/omtrack_vla/training/`;
+`PYTHONPATH=.` makes the package importable.
 
 ```bash
-PYTHONPATH=. python -m methods.omtrack_vla.training.make_tracking_data --input_root methods/omtrack_vla/sim_data/sample \
-  --output_root methods/omtrack_vla/data/sample --history 31 --horizon 8 --dt 0.1 \
+PYTHONPATH=. python -m methods.omtrack_vla.training.make_tracking_data --input_root methods/omtrack_vla/samples \
+  --output_root outputs/omtrack-data/sample --history 31 --horizon 8 --dt 0.1 \
   --instruction 'Follow the target person without collision.'
-PYTHONPATH=. python -m methods.omtrack_vla.training.precache_frames --data_root methods/omtrack_vla/data/sample \
-  --cache_root methods/omtrack_vla/data/sample/vision_cache --batch_size 1 --image_size 384
+PYTHONPATH=. python -m methods.omtrack_vla.training.precache_frames --data_root outputs/omtrack-data/sample \
+  --cache_root outputs/omtrack-data/sample/vision_cache --batch_size 1 --image_size 384
 ```
 
 Use local vision checkpoints by setting `DINOV3_MODEL_PATH` and
-`SIGLIP_MODEL_PATH` to the downloaded folders. The launcher exports them for
-its subprocesses. Verify frame/pose alignment, units, axes, dt and waypoint
+`SIGLIP_MODEL_PATH` to the downloaded folders. Verify frame/pose alignment, units, axes, dt and waypoint
 shape before training. Audit found that the converter's `trajectory` contains
 nine post-action points despite its origin-inclusive docstring. The trainer
 ignores that field and derives eight origin-inclusive points from `actions`.
@@ -59,8 +38,8 @@ train and test. Do not label model predictions as human-approved ground truth.
 
 ```bash
 python -m pip install -r requirements/training.txt
-PYTHONPATH=. python -m methods.omtrack_vla.training.train --train_json methods/omtrack_vla/data/sample/jsonl \
-  --cache_root methods/omtrack_vla/data/sample/vision_cache --out_dir ckpts/example \
+PYTHONPATH=. python -m methods.omtrack_vla.training.train --train_json outputs/omtrack-data/sample/jsonl \
+  --cache_root outputs/omtrack-data/sample/vision_cache --out_dir ckpts/example \
   --llm_name "$PWD/models/Qwen3-0.6B" --batch_size 1 \
   --epochs 1 --lr 2e-5 --mixed_precision --save_trajectories
 ```
@@ -98,18 +77,6 @@ The `planner` section needs only the OmTrackVLA and Qwen weights and runs both
 the released loader and the trainer class on fixed random features. The
 `pipeline` section also needs DINOv3 and SigLIP; use `--sections planner` until
 DINOv3 access is set up. The comparison requires bit-identical outputs.
-
-## Simulator evaluation
-
-```bash
-HF_MODEL_DIR="$PWD/models/OmTrackVLA-0.6B" \
-  OMTRACK_PYTHON="$(command -v python)" CUDA_VISIBLE_DEVICES=0 bash methods/omtrack_vla/sim/eval.sh
-```
-
-`CHUNKS`, `SAVE_PATH` and `EXP_CONFIG` select partitions/output/task config.
-The default is the bundled STT configuration. Evaluation requires its referenced
-scene files; Git cloning cannot provide restricted datasets. Ctrl-C stops only
-the child owned by that launcher. No broad process-name kill is used.
 
 ## Accuracy benchmark
 

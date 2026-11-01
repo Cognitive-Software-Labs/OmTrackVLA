@@ -22,7 +22,7 @@ publisher is included.
 
 All commands run from the repository root. The Python environment (`.venv`),
 weights (`models/`) and outputs (`outputs/`) live there; this directory holds
-the method's code, Habitat data and sample episodes.
+the method's code and two sample rollouts (`samples/`).
 
 ## 1. Clone and install inference
 
@@ -67,23 +67,20 @@ GPU driver are prerequisites: cloning alone cannot supply them.
 A small sample video is included in Git:
 
 ```bash
-methods/omtrack_vla/run_local.sh infer_sample.py
+methods/omtrack_vla/run_local.sh
 ```
 
 This decodes a real sample frame and saves eight predicted waypoints in
 `outputs/sample-inference/prediction.json`. To use your own image:
 
 ```bash
-methods/omtrack_vla/run_local.sh infer_sample.py --image /path/to/image.jpg \
+methods/omtrack_vla/run_local.sh --image /path/to/image.jpg \
   --instruction 'Follow the person wearing a black T-shirt.'
 ```
 
-`run_local.sh` changes into `methods/omtrack_vla/`, so give it absolute paths
-(or paths relative to that directory) for `--image` and `--output`.
 `OMTRACK_PYTHON=/path/to/cuda/python` selects an existing environment.
 `OMTRACK_ASSETS=/path/to/asset-root` selects a root containing `models/` without
 copying or changing shared weights. Defaults always refer to this checkout.
-`run_local.sh` runs from this directory, so Habitat `data/` paths resolve here.
 
 ## 4. Ridgeback live camera and waypoint preview
 
@@ -135,7 +132,7 @@ Create reproducible RGB fixtures from an available video:
 
 ```bash
 .venv/bin/python methods/omtrack_vla/scripts/prepare_benchmark.py \
-  --video methods/omtrack_vla/sim_data/sample/seed_100/17DRP5sb8fy/4.mp4
+  --video methods/omtrack_vla/samples/seed_100/17DRP5sb8fy/4.mp4
 PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.benchmark_omtrack_only direct \
   --output outputs/benchmark/local
 ```
@@ -163,12 +160,11 @@ The preview itself remains model-only. Tracking modes maintain target state and
 only invoke VLA after acquisition; skipped calls must not count as inference
 throughput. A lock or direction check is not physical-following qualification.
 
-## 7. Training and simulation
+## 7. Training
 
-The complete upstream model, trainer, converter, data tooling, customized
-Habitat-Lab code and sample episodes are retained. Large scene/avatar assets,
-Habitat-Sim binaries and pretrained weights must be installed separately.
-See [training/evaluation instructions](docs/TRAINING.md).
+The upstream model, trainer, converter and data tooling are retained. The
+Habitat simulator stack was removed; simulation uses the DyNAMO-Ridgeback
+simulators (Gazebo, Isaac Sim) instead. See [training instructions](docs/TRAINING.md).
 
 ## 8. Tests
 

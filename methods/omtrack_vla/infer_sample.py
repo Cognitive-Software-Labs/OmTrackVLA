@@ -11,7 +11,7 @@ REPO=HERE.parents[1]
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--video',default=str(HERE/'sim_data/sample/seed_100/17DRP5sb8fy/4.mp4'))
+    p.add_argument('--video',default=str(HERE/'samples/seed_100/17DRP5sb8fy/4.mp4'))
     p.add_argument('--image',type=Path)
     p.add_argument('--assets',type=Path,default=Path(os.environ.get('OMTRACK_ASSETS',REPO)))
     p.add_argument('--device',default='cuda')

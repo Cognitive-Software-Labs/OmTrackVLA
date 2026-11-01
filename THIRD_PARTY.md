@@ -6,16 +6,13 @@
   Original source attribution is retained. Its README links Apache-2.0, but that upstream
   snapshot has no root license file; this deployment does not invent or replace
   an upstream license grant. Consult the upstream authors for licensing clarity.
-- Bundled modified Habitat-Lab derives from Meta/Facebook Research Habitat-Lab.
-  Preserve its source headers and `methods/omtrack_vla/habitat-lab/LICENSE` (MIT).
-- The Spot robot assets retain `methods/omtrack_vla/data/robots/hab_spot_arm/LICENSE.txt`.
 - Pretrained OmTrackVLA, Qwen, DINOv3, SiGLIP and optional Grounding DINO/YOLO
   weights are downloaded separately from their publishers and retain their
   individual model licenses and access conditions. DINOv3 access must be
   approved for the downloading account. No weights or account credentials are
   published here.
-- HM3D, MP3D, humanoid and additional simulator assets require separate access
-  under their providers' licenses. Private lab recordings are excluded.
+- The two sample rollouts in `methods/omtrack_vla/samples/` were rendered with
+  Habitat from upstream scenes. Private lab recordings are excluded.
 
 The local camera preview, configuration, packaging and benchmark tools are
 integration work. They do not change the origin or attribution of the released

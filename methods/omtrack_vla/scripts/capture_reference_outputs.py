@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT))
 PROMPTS = ['Follow the person wearing a green jacket.',
            'Follow the person in the black T-shirt.',
            'Follow the target person without collision.']
-SAMPLE_VIDEO = ROOT / 'methods/omtrack_vla/sim_data/sample/seed_100/17DRP5sb8fy/4.mp4'
+SAMPLE_VIDEO = ROOT / 'methods/omtrack_vla/samples/seed_100/17DRP5sb8fy/4.mp4'
 PIPELINE_FRAMES = 12
 
 

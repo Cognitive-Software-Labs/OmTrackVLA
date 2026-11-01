@@ -6,8 +6,7 @@ Upstream code called this OpenTrackVLA; the released checkpoint's config.json st
 lists "OpenTrackVLAForWaypoint" and model_type "navfom". Loading goes through
 methods.omtrack_vla.hf with explicit classes, so only model_type has to keep matching.
 
-Single definition used by inference (hf), training (training/train.py) and the
-simulator agent. Data loading lives in dataset.py.
+Single definition used by inference (hf) and training (training/train.py). Data loading lives in dataset.py.
 """
 
 from __future__ import annotations

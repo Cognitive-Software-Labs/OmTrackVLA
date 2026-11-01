@@ -50,7 +50,7 @@ Nothing in this repository publishes `cmd_vel` yet: the robot does not move.
 |---|---|
 | `leader_follow/` | The system: one subpackage per stage; [`interfaces.py`](leader_follow/interfaces.py) holds the data passed between stages |
 | `robot/` | Shared Ridgeback infrastructure: ROS topics, camera QoS, process ownership, hashing, latency statistics, RViz configs |
-| `methods/omtrack_vla/` | OmTrackVLA, one candidate method: model, training, Habitat simulation, Ridgeback model service and benchmarks ([README](methods/omtrack_vla/README.md)) |
+| `methods/omtrack_vla/` | OmTrackVLA, one candidate method: model, training, Ridgeback model service and benchmarks ([README](methods/omtrack_vla/README.md)) |
 | `tests/` | System and infrastructure tests (no models, ROS or GPU) |
 | `requirements/`, `setup.sh` | Shared Python environment (`.venv`) |
 | `models/` | Downloaded weights (not in Git) |
