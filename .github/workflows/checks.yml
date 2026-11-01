@@ -11,8 +11,10 @@ jobs:
       - name: Test dependencies (numerical/image only; pins match requirements/inference.txt)
         run: python -m pip install numpy==1.26.4 Pillow==10.3.0
       - name: Contract tests (no models or GPU)
-        run: python -m unittest discover -s tests -v
+        run: |
+          python -m unittest discover -s tests -v
+          python -m unittest discover -s methods/omtrack_vla/tests -t . -v
       - name: Syntax
         run: |
-          python -m compileall -q real_robot scripts tests omtrack training sim infer_sample.py
-          bash -n setup.sh run_local.sh sim/eval.sh sim/stt_data.sh real_robot/start_omtrack_ridgeback.sh real_robot/start_omtrack_preview.sh
+          python -m compileall -q leader_follow robot tests methods -x 'habitat-lab'
+          bash -n setup.sh methods/omtrack_vla/run_local.sh methods/omtrack_vla/sim/eval.sh methods/omtrack_vla/sim/stt_data.sh methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh methods/omtrack_vla/ridgeback/start_omtrack_preview.sh

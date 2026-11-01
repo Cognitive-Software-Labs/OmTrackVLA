@@ -14,5 +14,5 @@ index="${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cu128}"
 "$venv/bin/python" -m pip install torch==2.8.0 torchvision==0.23.0 --index-url "$index"
 "$venv/bin/python" -m pip install -r requirements/inference.txt
 "$venv/bin/python" -m pip check
-"$venv/bin/python" scripts/doctor.py
-printf '\nSetup complete. Next: %s/bin/python scripts/download_models.py\n' "$venv"
+"$venv/bin/python" methods/omtrack_vla/scripts/doctor.py
+printf '\nSetup complete. Next: %s/bin/python methods/omtrack_vla/scripts/download_models.py\n' "$venv"

@@ -3,7 +3,7 @@ import socket
 import struct
 import unittest
 
-from real_robot.protocol import MAX_MESSAGE_BYTES, receive_message, send_message
+from robot.protocol import MAX_MESSAGE_BYTES, receive_message, send_message
 
 
 class ProtocolTests(unittest.TestCase):

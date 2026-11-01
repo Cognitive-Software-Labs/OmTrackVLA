@@ -7,8 +7,8 @@
   snapshot has no root license file; this deployment does not invent or replace
   an upstream license grant. Consult the upstream authors for licensing clarity.
 - Bundled modified Habitat-Lab derives from Meta/Facebook Research Habitat-Lab.
-  Preserve its source headers and `habitat-lab/LICENSE` (MIT).
-- The Spot robot assets retain `data/robots/hab_spot_arm/LICENSE.txt`.
+  Preserve its source headers and `methods/omtrack_vla/habitat-lab/LICENSE` (MIT).
+- The Spot robot assets retain `methods/omtrack_vla/data/robots/hab_spot_arm/LICENSE.txt`.
 - Pretrained OmTrackVLA, Qwen, DINOv3, SiGLIP and optional Grounding DINO/YOLO
   weights are downloaded separately from their publishers and retain their
   individual model licenses and access conditions. DINOv3 access must be
