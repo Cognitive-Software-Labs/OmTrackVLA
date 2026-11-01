@@ -12,8 +12,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
 
 from robot.topics import CAMERA_TOPIC
-from methods.omtrack_vla.ridgeback.defaults import DEFAULT_PROMPT, MODEL_PORT, PREVIEW_HTTP_PORT
-from methods.omtrack_vla.ridgeback.model_client import ModelClient, has_finite_waypoints
+from methods.omtrack_vla.deploy.defaults import DEFAULT_PROMPT, MODEL_PORT, PREVIEW_HTTP_PORT
+from methods.omtrack_vla.deploy.model_client import ModelClient, has_finite_waypoints
 from robot.ros_camera import latest_frame_qos, stamp_ns
 
 PAGE = '''<!doctype html><html><head><meta charset="utf-8"><title>Ridgeback · OmTrackVLA</title>

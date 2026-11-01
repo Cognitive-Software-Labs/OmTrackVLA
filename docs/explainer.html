@@ -1,0 +1,648 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crowd Leader Following</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a lab floor plan seen from above. One column of figure-led sections; the live hall scene opens the page. */
+:root {
+  --paper: #eef2f5;
+  --panel: #ffffff;
+  --ink: #142230;
+  --muted: #586979;
+  --line: #d3dce4;
+  --grid: #e1e8ee;
+  --robot: #2152c4;
+  --scan: #0b8f80;
+  --leader: #e0570f;
+  --person: #8d9aa6;
+  --ok: #157a3d;
+  --wait: #9a6a00;
+  --stop: #b42020;
+  --glow: rgba(33, 82, 196, .16);
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d141b; --panel: #151f29; --ink: #e5edf4; --muted: #95a5b4; --line: #283745; --grid: #1a2733;
+    --robot: #7aa2ff; --scan: #39cdb9; --leader: #ff8a42; --person: #6f7f8e;
+    --ok: #4ccf7f; --wait: #f0b93a; --stop: #ff6b6b; --glow: rgba(122, 162, 255, .18);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d141b; --panel: #151f29; --ink: #e5edf4; --muted: #95a5b4; --line: #283745; --grid: #1a2733;
+  --robot: #7aa2ff; --scan: #39cdb9; --leader: #ff8a42; --person: #6f7f8e;
+  --ok: #4ccf7f; --wait: #f0b93a; --stop: #ff6b6b; --glow: rgba(122, 162, 255, .18);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 1080px; margin: 0 auto; padding-block: 40px 80px; display: grid; gap: 88px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+h1 { font-size: clamp(2.3rem, 5.4vw, 3.9rem); line-height: 1.02; font-weight: 800; }
+h2 { font-size: clamp(1.6rem, 3.2vw, 2.25rem); line-height: 1.1; font-weight: 700; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+.eyebrow { font: 500 .78rem/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--scan); }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.stack { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.section-head { display: grid; gap: 10px; margin-bottom: 26px; }
+.mono { font-family: var(--mono); }
+.fig { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.fig svg { display: block; width: 100%; height: auto; }
+.caption { font-size: .85rem; color: var(--muted); }
+
+/* ---------- hero scene ---------- */
+.hero { display: grid; gap: 24px; }
+.hero-text { display: grid; gap: 14px; }
+.scene-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 0; }
+.scene { overflow-x: auto; background:
+  linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 40px 40px,
+  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 40px 40px, var(--panel); }
+.scene svg { min-width: 560px; }
+.readout { border-left: 1px solid var(--line); padding: 18px; display: grid; gap: 14px; align-content: start; }
+.state-chip { display: inline-flex; align-items: center; gap: 8px; font: 600 .95rem/1 var(--mono); letter-spacing: .06em;
+  padding: 8px 12px; border-radius: 999px; border: 1.5px solid currentColor; width: fit-content; transition: color .25s, box-shadow .25s; }
+.state-chip::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.state-chip.LOCKED { color: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 16%, transparent); }
+.state-chip.UNCERTAIN { color: var(--wait); box-shadow: 0 0 0 4px color-mix(in srgb, var(--wait) 16%, transparent); }
+.state-chip.LOST { color: var(--stop); box-shadow: 0 0 0 4px color-mix(in srgb, var(--stop) 16%, transparent); }
+.reason { min-height: 4.8em; font-size: .95rem; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: .88rem; color: var(--muted); }
+.kv b { font: 500 .92rem var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+.controls { display: flex; gap: 10px; align-items: center; padding: 12px 18px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.controls button { font: 600 .85rem var(--body); color: var(--panel); background: var(--robot); border: 0; border-radius: 8px; padding: 8px 14px; cursor: pointer; min-width: 74px; }
+.controls button:focus-visible, input[type=range]:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--robot); outline-offset: 2px; }
+.controls input[type=range] { flex: 1 1 200px; accent-color: var(--robot); }
+.controls .time { font: 500 .85rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; min-width: 58px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* ---------- problem tiles ---------- */
+.tiles3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 10px; align-content: start;
+  transition: transform .2s, box-shadow .2s, border-color .2s; }
+.tile:hover { transform: translateY(-3px); border-color: var(--robot); box-shadow: 0 10px 30px var(--glow); }
+.tile svg { width: 100%; height: auto; display: block; }
+.tile p { font-size: .95rem; color: var(--muted); }
+
+/* ---------- sensors ---------- */
+.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+.sense-list { display: grid; gap: 14px; }
+.sense { display: grid; grid-template-columns: 14px 1fr; gap: 12px; align-items: start; }
+.sense i { width: 14px; height: 14px; border-radius: 4px; margin-top: 5px; }
+.sense p { color: var(--muted); font-size: .95rem; }
+.callout { border: 1.5px dashed var(--robot); border-radius: 12px; padding: 14px 16px; background: color-mix(in srgb, var(--robot) 6%, var(--panel)); }
+
+/* ---------- pipeline ---------- */
+.pipe { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; position: relative; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; align-content: start; position: relative;
+  transition: transform .2s, box-shadow .2s, border-color .2s; }
+.stage:hover, .stage:focus-visible { transform: translateY(-4px); border-color: var(--robot); box-shadow: 0 12px 32px var(--glow); }
+.stage:not(:last-child)::after { content: "→"; position: absolute; right: -12px; top: 18px; color: var(--muted); font-family: var(--mono); width: 12px; text-align: center; }
+.stage .n { font: 500 .72rem var(--mono); color: var(--muted); letter-spacing: .08em; }
+.stage p { font-size: .86rem; color: var(--muted); }
+.pill { font: 600 .7rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 5px 8px; border-radius: 999px; width: fit-content; }
+.pill.built { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.pill.next { color: var(--robot); background: color-mix(in srgb, var(--robot) 14%, transparent); }
+.pill.later { color: var(--muted); background: color-mix(in srgb, var(--muted) 14%, transparent); }
+
+/* ---------- identity ---------- */
+.idgrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; }
+.fsm g.st { cursor: pointer; }
+.fsm g.st rect { transition: stroke-width .2s, filter .2s; }
+.fsm g.st:hover rect, .fsm g.st:focus rect, .fsm g.st.on rect { stroke-width: 3; filter: drop-shadow(0 0 8px var(--glow)); }
+.state-note { min-height: 6.4em; padding: 16px 18px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.rule { font-family: var(--display); font-size: 1.35rem; font-weight: 700; line-height: 1.25; }
+
+/* ---------- compare ---------- */
+.compare { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.col { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.col.base { border-color: var(--robot); box-shadow: 0 0 0 3px var(--glow); }
+.row { display: grid; grid-template-columns: 112px 1fr; gap: 12px; font-size: .93rem; padding-top: 10px; border-top: 1px solid var(--line); }
+.row span:first-child { font: 500 .74rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 3px; }
+
+/* ---------- evaluation ---------- */
+.scen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.scen .tile { padding: 14px; }
+.metrics { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.metric { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 8px 14px; font-size: .9rem; transition: border-color .2s, background .2s; }
+.metric:hover { border-color: var(--scan); background: color-mix(in srgb, var(--scan) 8%, var(--panel)); }
+.metric b { color: var(--scan); font-weight: 600; }
+
+/* ---------- progress ---------- */
+.track { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; position: relative; }
+.track::before { content: ""; position: absolute; left: 7%; right: 7%; top: 13px; height: 2px; background: var(--line); }
+.step { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 0 6px; position: relative; }
+.step .ball { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--panel); display: grid; place-items: center; font: 600 .75rem var(--mono); }
+.step.done .ball { background: var(--ok); border-color: var(--ok); color: var(--panel); }
+.step.now .ball { border-color: var(--robot); color: var(--robot); box-shadow: 0 0 0 6px var(--glow); }
+.step b { font-size: .92rem; }
+.step span { font-size: .82rem; color: var(--muted); }
+.questions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
+.q { border-left: 3px solid var(--leader); padding: 4px 0 4px 14px; display: grid; gap: 4px; }
+.q p { font-size: .92rem; color: var(--muted); }
+footer { color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 18px; }
+
+/* svg tokens */
+.s-person { fill: var(--person); }
+.s-leader { fill: var(--leader); }
+.s-robot { fill: var(--robot); }
+.s-scan { fill: var(--scan); }
+.s-ink { fill: var(--ink); }
+.s-muted { fill: var(--muted); }
+.s-panel { fill: var(--panel); }
+.t { font: 500 11px var(--mono); fill: var(--muted); }
+.t-ink { font: 600 12px var(--body); fill: var(--ink); }
+
+@media (max-width: 900px) {
+  .scene-wrap { grid-template-columns: 1fr; }
+  .readout { border-left: 0; border-top: 1px solid var(--line); }
+  .pipe { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .stage::after { display: none; }
+  .split, .idgrid, .compare { grid-template-columns: 1fr; }
+  .scen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  main { gap: 64px; padding-block: 24px 56px; }
+  .tiles3, .scen, .questions { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: 1fr; }
+  .track { grid-template-columns: 1fr; gap: 14px; }
+  .track::before { left: 13px; right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; }
+  .step { grid-template-columns: 28px 1fr; justify-items: start; text-align: left; column-gap: 12px; }
+  .step .ball { grid-row: span 2; }
+  .row { grid-template-columns: 1fr; gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+</style>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-text">
+    <span class="eyebrow">Ridgeback · lab project</span>
+    <h1>Follow one person through a crowd</h1>
+    <p class="lede">A Clearpath Ridgeback locks onto the person in front of it and follows them through a busy space. It keeps the right person when others walk between, look alike or block the way, and it stops instead of guessing when it is unsure.</p>
+  </div>
+
+  <div class="fig">
+    <div class="scene-wrap">
+      <div class="scene" aria-label="Animated top-down view of the robot following a leader through a hall with other people">
+        <svg id="scene" viewBox="0 0 900 360" role="img" aria-labelledby="sceneTitle">
+          <title id="sceneTitle">Top-down hall: robot, leader and passers-by</title>
+          <g id="fans"></g>
+          <path id="trail" fill="none" stroke="var(--leader)" stroke-opacity=".25" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"></path>
+          <line id="los" stroke-width="2" stroke-dasharray="6 5"></line>
+          <g id="hits"></g>
+          <g id="people"></g>
+          <g id="robot"></g>
+        </svg>
+      </div>
+      <aside class="readout" aria-live="polite">
+        <span class="eyebrow" style="color:var(--muted)">What the robot thinks</span>
+        <span id="chip" class="state-chip LOCKED">LOCKED</span>
+        <p id="reason" class="reason"></p>
+        <div class="kv">
+          <span>Distance to leader</span><b id="kvLead">–</b>
+          <span>Gap to nearest bystander</span><b id="kvGap">–</b>
+          <span>Robot speed</span><b id="kvSpeed">–</b>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--leader)"></i>leader</span>
+          <span><i class="dot" style="background:var(--person)"></i>others</span>
+          <span><i class="dot" style="background:var(--scan)"></i>lidar hits</span>
+          <span><i class="dot" style="background:var(--robot)"></i>robot + camera view</span>
+        </div>
+      </aside>
+    </div>
+    <div class="controls">
+      <button id="play" type="button">Pause</button>
+      <input id="scrub" type="range" min="0" max="720" value="0" aria-label="Scene time">
+      <span id="clock" class="time">0.0 s</span>
+    </div>
+  </div>
+  <p class="caption">Illustration of the intended behaviour, simulated in the page. It is not recorded robot data.</p>
+</section>
+
+<!-- ============ WHY HARD ============ -->
+<section>
+  <div class="section-head">
+    <span class="eyebrow">The problem</span>
+    <h2>Three things go wrong in crowds</h2>
+  </div>
+  <div class="tiles3">
+    <article class="tile">
+      <svg viewBox="0 0 240 120" aria-hidden="true">
+        <rect x="20" y="48" width="34" height="26" rx="5" class="s-robot"/>
+        <line x1="54" y1="61" x2="196" y2="61" stroke="var(--stop)" stroke-width="2" stroke-dasharray="5 4"/>
+        <circle cx="205" cy="61" r="11" class="s-leader"/>
+        <circle cx="122" cy="61" r="12" class="s-person"/>
+        <path d="M122 22 V100" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 4" fill="none"/>
+        <path d="M117 94 l5 8 l5 -8" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+        <text x="96" y="16" class="t">passer-by</text>
+      </svg>
+      <h3>Someone walks between</h3>
+      <p>For a moment the camera cannot see the leader at all. The robot has to remember who it was following and pick them up again afterwards.</p>
+    </article>
+    <article class="tile">
+      <svg viewBox="0 0 240 120" aria-hidden="true">
+        <rect x="20" y="48" width="34" height="26" rx="5" class="s-robot"/>
+        <circle cx="168" cy="40" r="11" class="s-leader"/>
+        <circle cx="168" cy="40" r="17" fill="none" stroke="var(--leader)" stroke-width="2"/>
+        <circle cx="190" cy="84" r="11" class="s-leader"/>
+        <text x="186" y="16" class="t">leader</text>
+        <text x="150" y="114" class="t">look-alike</text>
+        <text x="120" y="66" class="t-ink">?</text>
+      </svg>
+      <h3>Someone looks the same</h3>
+      <p>Two dark jackets look nearly identical from behind. Colour alone cannot tell them apart; where each person has been moving can.</p>
+    </article>
+    <article class="tile">
+      <svg viewBox="0 0 240 120" aria-hidden="true">
+        <rect x="20" y="48" width="34" height="26" rx="5" class="s-robot"/>
+        <circle cx="205" cy="61" r="11" class="s-leader"/>
+        <circle cx="112" cy="42" r="11" class="s-person"/>
+        <circle cx="128" cy="70" r="11" class="s-person"/>
+        <circle cx="104" cy="88" r="11" class="s-person"/>
+        <circle cx="37" cy="61" r="40" fill="none" stroke="var(--scan)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <text x="8" y="16" class="t">safety bubble</text>
+      </svg>
+      <h3>People are in the way</h3>
+      <p>The shortest path to the leader runs through other people. The robot must keep a safe gap to everyone, not only to the person it follows.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ SENSORS ============ -->
+<section>
+  <div class="split">
+    <div class="fig">
+      <svg viewBox="0 0 420 360" role="img" aria-labelledby="covT">
+        <title id="covT">Sensor coverage seen from above</title>
+        <g id="coverage"></g>
+      </svg>
+    </div>
+    <div class="stack">
+      <span class="eyebrow">What the robot has</span>
+      <h2>Lidar sees everyone. The camera sees who they are.</h2>
+      <div class="sense-list">
+        <div class="sense"><i style="background:var(--scan)"></i><div><h3>Two lidars, 270° each</h3><p>One at the front, one at the rear: together a full circle. They measure where every person is, many times a second, in the dark too. They only see outlines, so they cannot tell people apart.</p></div></div>
+        <div class="sense"><i style="background:var(--robot)"></i><div><h3>One front camera</h3><p>Shows clothing and appearance, which is what identifies the leader. It only looks forward, and people block it.</p></div></div>
+        <div class="sense"><i style="background:var(--leader)"></i><div><h3>A base that moves sideways</h3><p>The Ridgeback drives in any direction and turns on the spot, so it can keep the camera on the leader while it side-steps around people.</p></div></div>
+      </div>
+      <p class="callout">So the plan combines them: lidar keeps track of where each person goes, and the camera confirms which of them is the leader.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PIPELINE ============ -->
+<section>
+  <div class="section-head">
+    <span class="eyebrow">How it works</span>
+    <h2>Six steps, each replaceable</h2>
+    <p class="lede">Each step hands a simple result to the next. Any step can be swapped for a better one, including a learned model, without rebuilding the rest.</p>
+  </div>
+  <div class="pipe">
+    <article class="stage" tabindex="0"><span class="n">SENSE</span><h3>Merge the scans</h3><p>Join the front and rear lidar into one 360° picture. The DyNAMO-Ridgeback setup already does this; we reuse it.</p><span class="pill built">already exists</span></article>
+    <article class="stage" tabindex="0"><span class="n">SEE</span><h3>Find people</h3><p>Camera: boxes around every person. Lidar: legs and bodies.</p><span class="pill built">camera part works</span></article>
+    <article class="stage" tabindex="0"><span class="n">TRACK</span><h3>Follow everyone</h3><p>Keep a position and heading for each person, even while hidden from the camera.</p><span class="pill next">next</span></article>
+    <article class="stage" tabindex="0"><span class="n">IDENTIFY</span><h3>Which one is the leader?</h3><p>Lock on at the start, then keep checking appearance and track history.</p><span class="pill built">lock logic works</span></article>
+    <article class="stage" tabindex="0"><span class="n">FOLLOW</span><h3>Keep the distance</h3><p>Stay about a metre behind, keep the leader in front of the camera.</p><span class="pill later">later</span></article>
+    <article class="stage" tabindex="0"><span class="n">SAFETY</span><h3>Never bump anyone</h3><p>Cap speed, keep a gap to every person, stop when the leader is not confirmed.</p><span class="pill later">later</span></article>
+  </div>
+</section>
+
+<!-- ============ IDENTITY ============ -->
+<section>
+  <div class="section-head">
+    <span class="eyebrow">Keeping the right person</span>
+    <h2>The lock never jumps to someone else</h2>
+  </div>
+  <div class="idgrid">
+    <div class="fig">
+      <svg class="fsm" viewBox="0 0 520 300" role="img" aria-labelledby="fsmT">
+        <title id="fsmT">The four lock states and how the robot moves between them</title>
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="s-muted"/></marker>
+        </defs>
+        <g fill="none" stroke="var(--muted)" stroke-width="1.6" marker-end="url(#arr)">
+          <path d="M150 70 H230"/>
+          <path d="M330 92 C 360 140, 360 150, 340 190"/>
+          <path d="M290 190 C 270 150, 270 140, 292 94"/>
+          <path d="M240 222 H170"/>
+          <path d="M120 200 C 140 150, 200 110, 236 92"/>
+        </g>
+        <text x="158" y="60" class="t">confirmed</text>
+        <text x="362" y="146" class="t">leader hidden</text>
+        <text x="186" y="150" class="t">seen again</text>
+        <text x="176" y="240" class="t">too long</text>
+        <text x="60" y="120" class="t">re-confirmed</text>
+        <g class="st" data-s="SEARCHING" tabindex="0"><rect x="20" y="46" width="130" height="48" rx="10" fill="var(--panel)" stroke="var(--muted)" stroke-width="1.5"/><text x="85" y="75" text-anchor="middle" class="t-ink">SEARCHING</text></g>
+        <g class="st" data-s="LOCKED" tabindex="0"><rect x="234" y="46" width="120" height="48" rx="10" fill="var(--panel)" stroke="var(--ok)" stroke-width="1.5"/><text x="294" y="75" text-anchor="middle" class="t-ink" style="fill:var(--ok)">LOCKED</text></g>
+        <g class="st" data-s="UNCERTAIN" tabindex="0"><rect x="244" y="194" width="140" height="48" rx="10" fill="var(--panel)" stroke="var(--wait)" stroke-width="1.5"/><text x="314" y="223" text-anchor="middle" class="t-ink" style="fill:var(--wait)">UNCERTAIN</text></g>
+        <g class="st" data-s="LOST" tabindex="0"><rect x="40" y="198" width="130" height="48" rx="10" fill="var(--panel)" stroke="var(--stop)" stroke-width="1.5"/><text x="105" y="227" text-anchor="middle" class="t-ink" style="fill:var(--stop)">LOST</text></g>
+        <text x="294" y="30" text-anchor="middle" class="t" style="fill:var(--ok)">only state that moves the robot</text>
+      </svg>
+      <div class="state-note" id="stateNote"></div>
+    </div>
+    <div class="stack">
+      <p class="rule">If the robot is not sure it sees the leader, it stops and looks. It never follows a best guess.</p>
+      <p>Following the wrong person quietly is the worst failure, worse than stopping. So the lock only moves the robot when the leader is confirmed, and a new person has to pass two independent checks before the lock accepts them as the leader again.</p>
+      <div class="fig">
+        <svg viewBox="0 0 420 220" role="img" aria-labelledby="embT">
+          <title id="embT">Appearance fingerprints: the leader's snapshots cluster together</title>
+          <g id="embed"></g>
+        </svg>
+      </div>
+      <p class="caption">Each person crop becomes an appearance fingerprint. A network trained once on thousands of other people puts photos of the same person close together. At lock-on the robot stores a few snapshots of the leader; nobody is trained per person.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPARE ============ -->
+<section>
+  <div class="section-head">
+    <span class="eyebrow">Why build this first</span>
+    <h2>A baseline before the big model</h2>
+    <p class="lede">The repository started as a deployment of OmTrackVLA, a vision-language-action model that turns camera images and a sentence into a path. It stays as a candidate. A simple, measurable system comes first, so the model has something to beat.</p>
+  </div>
+  <div class="compare">
+    <div class="col">
+      <h3>OmTrackVLA (one big model)</h3>
+      <div class="row"><span>Sees</span><span>Front camera only</span></div>
+      <div class="row"><span>Speed</span><span>About 6 decisions a second on the robot (168 ms each, measured)</span></div>
+      <div class="row"><span>Identity</span><span>Implicit inside the model; cannot be inspected or corrected</span></div>
+      <div class="row"><span>Learned from</span><span>Simulated people in a virtual building</span></div>
+      <div class="row"><span>Moves robot?</span><span>It has driven the robot before, but that driving code is not in this project yet; here its paths are only displayed</span></div>
+    </div>
+    <div class="col base">
+      <h3>Modular baseline (this project)</h3>
+      <div class="row"><span>Sees</span><span>360° lidar plus the camera</span></div>
+      <div class="row"><span>Speed</span><span>Aim: ten or more updates a second</span></div>
+      <div class="row"><span>Identity</span><span>An explicit lock with states you can watch and test</span></div>
+      <div class="row"><span>Learned from</span><span>Public pretrained detectors and re-identification; no new training to start</span></div>
+      <div class="row"><span>Crowd results</span><span>None yet, for either approach</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EVALUATION ============ -->
+<section>
+  <div class="section-head">
+    <span class="eyebrow">How we will know</span>
+    <h2>Same scenarios, same scores, for every approach</h2>
+    <p class="lede">During tests the leader wears a marker the robot never uses. It records where the leader really was, so every mistake can be counted.</p>
+  </div>
+  <div class="scen">
+    <article class="tile"><h3>Alone</h3><p>Straight lines and turns. Tunes distance keeping.</p></article>
+    <article class="tile"><h3>Crossing</h3><p>One person walks between robot and leader.</p></article>
+    <article class="tile"><h3>Look-alike</h3><p>Someone dressed the same walks beside the leader.</p></article>
+    <article class="tile"><h3>Swap</h3><p>Leader and look-alike cross paths.</p></article>
+    <article class="tile"><h3>Stop in a group</h3><p>The leader stops among standing people.</p></article>
+    <article class="tile"><h3>Crowd</h3><p>More and more people at once, everything combined.</p></article>
+  </div>
+  <div class="metrics">
+    <span class="metric"><b>Success</b> runs that end still on the leader</span>
+    <span class="metric"><b>Right-person time</b> share of the run on the leader</span>
+    <span class="metric"><b>Switches</b> times the lock moved to someone else</span>
+    <span class="metric"><b>Wrong-follow time</b> seconds moving behind the wrong person (goal: zero)</span>
+    <span class="metric"><b>Recovery</b> seconds to re-lock after a blocked view</span>
+    <span class="metric"><b>Distance</b> how steady the following gap is</span>
+    <span class="metric"><b>Clearance</b> closest the robot got to a bystander</span>
+    <span class="metric"><b>Safety stops</b> how often it had to brake</span>
+  </div>
+</section>
+
+<!-- ============ PROGRESS ============ -->
+<section>
+  <div class="section-head">
+    <span class="eyebrow">Where we are</span>
+    <h2>Groundwork done, data next</h2>
+  </div>
+  <div class="track">
+    <div class="step done"><i class="ball">✓</i><b>Groundwork</b><span>Code reorganised around this goal; lock logic and camera tracker pulled out and checked</span></div>
+    <div class="step now"><i class="ball">1</i><b>Record data</b><span>Robot recordings of the test scenarios with the leader marker</span></div>
+    <div class="step"><i class="ball">2</i><b>Track offline</b><span>Find and track people on the recordings</span></div>
+    <div class="step"><i class="ball">3</i><b>Check identity</b><span>Can appearance pick the leader out of the people nearby?</span></div>
+    <div class="step"><i class="ball">4</i><b>Drive</b><span>Close the loop on the robot: empty room first, then more people</span></div>
+    <div class="step"><i class="ball">5</i><b>Score</b><span>Run every scenario; then compare other approaches</span></div>
+  </div>
+  <div class="questions">
+    <div class="q"><h3>How crowded?</h3><p>A lab corridor with a few people, or a busy public hall? This sets the test densities and speed limits.</p></div>
+    <div class="q"><h3>One camera enough?</h3><p>With only a front camera, identity is confirmed only ahead of the robot. The lidar has to carry the rest.</p></div>
+    <div class="q"><h3>Lidar height?</h3><p>Lidars at shin height see legs; higher ones see bodies. That decides which people detector fits.</p></div>
+  </div>
+</section>
+
+<footer>Cognitive Software Labs · Ridgeback leader following. Code and technical documents live in the project repository.</footer>
+</main>
+
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+  const fanPath = (cx, cy, r, a0, a1) => {
+    const p = a => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    const [x0, y0] = p(a0), [x1, y1] = p(a1);
+    const large = (a1 - a0) % (2 * Math.PI) > Math.PI ? 1 : 0;
+    return `M${cx} ${cy} L${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`;
+  };
+  const rad = d => d * Math.PI / 180;
+
+  /* ---------- sensor coverage figure ---------- */
+  const cov = document.getElementById('coverage');
+  const cx = 210, cy = 185;
+  el('path', { d: fanPath(cx + 26, cy, 150, rad(-135), rad(135)), fill: 'var(--scan)', 'fill-opacity': .12, stroke: 'var(--scan)', 'stroke-opacity': .6 }, cov);
+  el('path', { d: fanPath(cx - 26, cy, 150, rad(45), rad(315)), fill: 'var(--scan)', 'fill-opacity': .12, stroke: 'var(--scan)', 'stroke-opacity': .6, 'stroke-dasharray': '5 4' }, cov);
+  el('path', { d: fanPath(cx + 30, cy, 175, rad(-32), rad(32)), fill: 'var(--robot)', 'fill-opacity': .14, stroke: 'var(--robot)', 'stroke-opacity': .7 }, cov);
+  el('rect', { x: cx - 38, y: cy - 31, width: 76, height: 62, rx: 8, class: 's-robot' }, cov);
+  el('circle', { cx: cx + 26, cy, r: 5, fill: 'var(--panel)' }, cov);
+  el('circle', { cx: cx - 26, cy, r: 5, fill: 'var(--panel)' }, cov);
+  [[0, -1], [0, 1], [1, 0]].forEach(([dx, dy]) => {
+    el('line', { x1: cx + dx * 46, y1: cy + dy * 40, x2: cx + dx * 72, y2: cy + dy * 66, stroke: 'var(--leader)', 'stroke-width': 3, 'stroke-linecap': 'round', 'marker-end': 'url(#arrL)' }, cov);
+  });
+  const defs = el('defs', {}, cov.ownerSVGElement);
+  const mk = el('marker', { id: 'arrL', viewBox: '0 0 10 10', refX: 6, refY: 5, markerWidth: 4, markerHeight: 4, orient: 'auto' }, defs);
+  el('path', { d: 'M0 0 L10 5 L0 10 z', fill: 'var(--leader)' }, mk);
+  const label = (x, y, s, cls, anchor) => { const t = el('text', { x, y, class: cls || 't', 'text-anchor': anchor || 'start' }, cov); t.textContent = s; };
+  label(392, 70, 'front lidar 270°', 't', 'end');
+  label(28, 340, 'rear lidar 270°');
+  label(395, 196, 'camera', 't', 'end');
+  label(cx, 116, 'sideways', 't', 'middle');
+  label(cx, 22, 'together: a full circle', 't-ink', 'middle');
+  label(cx, 300, 'darker: seen by both', 't', 'middle');
+
+  /* ---------- appearance fingerprint figure ---------- */
+  const emb = document.getElementById('embed');
+  const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+  el('circle', { cx: 150, cy: 105, r: 54, fill: 'var(--leader)', 'fill-opacity': .07, stroke: 'var(--leader)', 'stroke-dasharray': '5 4' }, emb);
+  for (let i = 0; i < 7; i++) el('circle', { cx: 150 + (rnd() - .5) * 52, cy: 105 + (rnd() - .5) * 46, r: 6, class: 's-leader' }, emb);
+  el('circle', { cx: 222, cy: 128, r: 6, fill: 'none', stroke: 'var(--leader)', 'stroke-width': 2.2 }, emb);
+  [[320, 50], [350, 160], [300, 190], [60, 180], [390, 95], [40, 40], [270, 30]].forEach(([x, y]) => el('circle', { cx: x, cy: y, r: 6, class: 's-person' }, emb));
+  const elab = (x, y, s, anchor) => { const t = el('text', { x, y, class: 't', 'text-anchor': anchor || 'start' }, emb); t.textContent = s; };
+  elab(150, 40, "leader's snapshots", 'middle');
+  elab(150, 178, 'match zone', 'middle');
+  elab(232, 132, 'look-alike: close, but outside');
+  elab(330, 200, 'other people');
+
+  /* ---------- lock-state explainer ---------- */
+  const NOTES = {
+    SEARCHING: ['Searching', 'No leader yet. The robot proposes the person straight in front of it, then watches them for a few frames before it trusts the choice.'],
+    LOCKED: ['Locked', 'The leader is confirmed this frame: same track, matching appearance. This is the only state in which the robot drives.'],
+    UNCERTAIN: ['Uncertain', 'The leader is hidden or looks different this frame. The robot holds still and waits for the original person to reappear.'],
+    LOST: ['Lost', 'The leader has been unconfirmed for too long. The robot stays stopped and turns to search. It re-locks only on someone who matches the stored snapshots and passes a second check.'],
+  };
+  const note = document.getElementById('stateNote');
+  const states = document.querySelectorAll('.fsm g.st');
+  const show = s => { states.forEach(g => g.classList.toggle('on', g.dataset.s === s)); note.innerHTML = `<h3>${NOTES[s][0]}</h3><p style="color:var(--muted);font-size:.95rem">${NOTES[s][1]}</p>`; };
+  states.forEach(g => { g.addEventListener('mouseenter', () => show(g.dataset.s)); g.addEventListener('focus', () => show(g.dataset.s)); g.addEventListener('click', () => show(g.dataset.s)); });
+  show('LOCKED');
+
+  /* ---------- hall scene: a small simulation, precomputed ---------- */
+  const PX = 40, DT = 1 / 30, T = 24, N = Math.round(T / DT);
+  const path = keys => t => {
+    if (t <= keys[0][0]) return [keys[0][1], keys[0][2]];
+    for (let i = 1; i < keys.length; i++) { const a = keys[i - 1], b = keys[i]; if (t <= b[0]) { const u = (t - a[0]) / (b[0] - a[0]); return [a[1] + u * (b[1] - a[1]), a[2] + u * (b[2] - a[2])]; } }
+    const l = keys[keys.length - 1]; return [l[1], l[2]];
+  };
+  const leaderAt = path([[0, 3.6, 4.6], [5, 8.6, 4.6], [9, 12.2, 3.4], [14, 16.4, 3.0], [18, 19.6, 3.8], [24, 21.6, 4.8]]);
+  const others = [
+    { at: path([[0, 9.3, 9.6], [3.5, 9.3, 9.0], [9.5, 9.3, 0.0], [24, 9.3, -12]]) },          // fast crosser
+    { at: path([[0, 14.9, 9.1], [24, 14.9, -1.7]]) },                                          // slow pair walking
+    { at: path([[0, 14.9, 9.7], [24, 14.9, -1.1]]) },                                          //   across the view
+    { at: () => [17.6, 1.4] }, { at: () => [18.2, 1.1] }, { at: () => [18.15, 1.85] },         // standing group
+    { at: path([[0, 26, 7.3], [24, 15.5, 3.7]]), alike: true },                                // look-alike
+    { at: path([[0, 0.8, 7.8], [24, 19, 8.3]]) },
+    { at: path([[0, 21, 7.6], [24, 3, 6.9]]) },
+    { at: path([[0, 19, 0.4], [24, 1.5, 0.6]]) },
+  ];
+  const ALIKE = others.findIndex(o => o.alike);
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], len = v => Math.hypot(v[0], v[1]);
+  const segDist = (p, a, b) => { const ab = sub(b, a), ap = sub(p, a); const s = Math.max(0, Math.min(1, (ap[0] * ab[0] + ap[1] * ab[1]) / (ab[0] ** 2 + ab[1] ** 2))); return [len(sub(p, [a[0] + s * ab[0], a[1] + s * ab[1]])), s]; };
+
+  const frames = [];
+  let R = [2.2, 4.6], state = 'LOCKED', hidden = 0, seen = 0, sinceLock = 99, heading = 0, lastSeen = leaderAt(0);
+  for (let i = 0; i <= N; i++) {
+    const t = i * DT, L = leaderAt(t), P = others.map(o => o.at(t));
+    const blocked = P.some(p => { const [d, s] = segDist(p, R, L); return d < 0.32 && s > 0.05 && s < 0.95; });
+    let why;
+    if (blocked) {
+      seen = 0; hidden += DT;
+      if (state === 'LOCKED') state = 'UNCERTAIN';
+      if (state === 'UNCERTAIN' && hidden > 1.5) state = 'LOST';
+      why = state === 'LOST' ? 'lost' : 'hidden';
+    } else {
+      hidden = 0;
+      if (state !== 'LOCKED') { seen += DT; why = 'confirming'; if (seen >= 0.6) { state = 'LOCKED'; sinceLock = 0; seen = 0; } }
+    }
+    if (state === 'LOCKED') { lastSeen = L; sinceLock += DT; why = sinceLock < 1.6 ? 'recovered' : 'locked'; }
+    // motion: follow when locked, keep clear of everyone always
+    let v = [0, 0];
+    if (state === 'LOCKED') {
+      const d = sub(L, R), dist = len(d), tgt = [L[0] - 1.4 * d[0] / dist, L[1] - 1.4 * d[1] / dist];
+      const e = sub(tgt, R), el2 = len(e), sp = Math.min(1.35, el2 * 1.6);
+      if (el2 > 1e-6) v = [e[0] / el2 * sp, e[1] / el2 * sp];
+    }
+    P.forEach(p => { const d = sub(R, p), r = len(d); if (r < 1.3 && r > 1e-6) { const k = (1.3 - r) * 3.2; v[0] += d[0] / r * k; v[1] += d[1] / r * k; } });
+    const speed = len(v);
+    R = [R[0] + v[0] * DT, R[1] + v[1] * DT];
+    const want = Math.atan2(lastSeen[1] - R[1], lastSeen[0] - R[0]) + (state === 'LOST' ? 0.55 * Math.sin(t * 2.2) : 0);
+    let dh = want - heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh)); heading += Math.max(-2.5 * DT, Math.min(2.5 * DT, dh));
+    const gap = Math.min(...P.map(p => len(sub(R, p)))) - 0.25 - 0.45;
+    const alikeNear = len(sub(P[ALIKE], L)) < 3.2;
+    frames.push({ t, L, P, R: [...R], heading, state, why, speed, lead: len(sub(L, R)), gap, alikeNear });
+  }
+
+  const REASONS = {
+    locked: 'Leader confirmed. Following about 1.4 m behind.',
+    recovered: 'Leader seen again and re-confirmed. Following resumes.',
+    hidden: 'Someone is between the robot and the leader. The robot holds still and waits.',
+    lost: 'Leader unconfirmed for more than 1.5 s. The robot stays stopped and turns to look.',
+    confirming: 'Leader visible again. Checking it is the same person before moving.',
+  };
+  const svg = document.getElementById('scene');
+  const gFans = document.getElementById('fans'), gHits = document.getElementById('hits'), gPeople = document.getElementById('people'), gRobot = document.getElementById('robot');
+  const los = document.getElementById('los');
+  document.getElementById('trail').setAttribute('d', 'M' + Array.from({ length: 49 }, (_, k) => leaderAt(k / 2).map(c => (c * PX).toFixed(1)).join(' ')).join(' L'));
+  // One even disk for the combined 360° coverage; the two fans as faint outlines only.
+  const disk = el('circle', { r: 150, fill: 'var(--scan)', 'fill-opacity': .07 }, gFans);
+  const fanF = el('path', { fill: 'none', stroke: 'var(--scan)', 'stroke-opacity': .25 }, gFans);
+  const fanB = el('path', { fill: 'none', stroke: 'var(--scan)', 'stroke-opacity': .25, 'stroke-dasharray': '4 4' }, gFans);
+  const cone = el('path', { fill: 'var(--robot)', 'fill-opacity': .1, stroke: 'var(--robot)', 'stroke-opacity': .45 }, gFans);
+  const bodies = others.map(o => el('circle', { r: 10, class: o.alike ? 's-leader' : 's-person' }, gPeople));
+  const alikeTag = el('text', { class: 't', 'text-anchor': 'middle' }, gPeople); alikeTag.textContent = 'look-alike';
+  const lead = el('circle', { r: 10, class: 's-leader' }, gPeople);
+  const ring = el('circle', { r: 16, fill: 'none', 'stroke-width': 2.5 }, gPeople);
+  const leadTag = el('text', { class: 't-ink', 'text-anchor': 'middle' }, gPeople); leadTag.textContent = 'leader';
+  const body = el('rect', { x: -19, y: -16, width: 38, height: 32, rx: 5, class: 's-robot' }, gRobot);
+  el('rect', { x: 10, y: -10, width: 6, height: 20, rx: 2, fill: 'var(--panel)' }, gRobot);
+  const hits = Array.from({ length: (others.length + 1) * 2 }, () => el('circle', { r: 2.4, class: 's-scan' }, gHits));
+
+  const chip = document.getElementById('chip'), reason = document.getElementById('reason');
+  const kvLead = document.getElementById('kvLead'), kvGap = document.getElementById('kvGap'), kvSpeed = document.getElementById('kvSpeed');
+  const scrub = document.getElementById('scrub'), clock = document.getElementById('clock'), play = document.getElementById('play');
+  scrub.max = N;
+  const COL = { LOCKED: 'var(--ok)', UNCERTAIN: 'var(--wait)', LOST: 'var(--stop)' };
+
+  const draw = i => {
+    const f = frames[i], rx = f.R[0] * PX, ry = f.R[1] * PX, h = f.heading;
+    gRobot.setAttribute('transform', `translate(${rx} ${ry}) rotate(${h * 180 / Math.PI})`);
+    const fx = rx + Math.cos(h) * 16, fy = ry + Math.sin(h) * 16, bx = rx - Math.cos(h) * 16, by = ry - Math.sin(h) * 16;
+    fanF.setAttribute('d', fanPath(fx, fy, 150, h - rad(135), h + rad(135)));
+    fanB.setAttribute('d', fanPath(bx, by, 150, h + rad(45), h + rad(315)));
+    disk.setAttribute('cx', rx); disk.setAttribute('cy', ry);
+    cone.setAttribute('d', fanPath(fx, fy, 260, h - rad(30), h + rad(30)));
+    const pts = [f.L, ...f.P];
+    pts.forEach((p, k) => {
+      const d = sub(p, f.R), r = len(d), nx = -d[1] / (r || 1), ny = d[0] / (r || 1), on = r < 9;
+      [-1, 1].forEach((s, j) => { const c = hits[k * 2 + j]; c.setAttribute('cx', (p[0] - d[0] / r * .22 + s * nx * .1) * PX); c.setAttribute('cy', (p[1] - d[1] / r * .22 + s * ny * .1) * PX); c.style.opacity = on ? 1 : 0; });
+    });
+    f.P.forEach((p, k) => { bodies[k].setAttribute('cx', p[0] * PX); bodies[k].setAttribute('cy', p[1] * PX); });
+    alikeTag.setAttribute('x', f.P[ALIKE][0] * PX); alikeTag.setAttribute('y', f.P[ALIKE][1] * PX - 16); alikeTag.style.opacity = f.P[ALIKE][0] < 22.4 ? 1 : 0;
+    lead.setAttribute('cx', f.L[0] * PX); lead.setAttribute('cy', f.L[1] * PX);
+    ring.setAttribute('cx', f.L[0] * PX); ring.setAttribute('cy', f.L[1] * PX); ring.setAttribute('stroke', COL[f.state]);
+    leadTag.setAttribute('x', f.L[0] * PX); leadTag.setAttribute('y', f.L[1] * PX + 30);
+    los.setAttribute('x1', rx); los.setAttribute('y1', ry); los.setAttribute('x2', f.L[0] * PX); los.setAttribute('y2', f.L[1] * PX);
+    los.setAttribute('stroke', COL[f.state]); los.style.opacity = f.state === 'LOCKED' ? .55 : .9;
+    chip.className = 'state-chip ' + f.state; chip.textContent = f.state;
+    let text = REASONS[f.why];
+    if (f.state === 'LOCKED' && f.alikeNear && f.why === 'locked') text = 'A look-alike is close to the leader. The lock stays on the same track, whose appearance still matches.';
+    reason.textContent = text;
+    kvLead.textContent = f.lead.toFixed(1) + ' m';
+    kvGap.textContent = Math.max(0, f.gap).toFixed(1) + ' m';
+    kvSpeed.textContent = f.speed.toFixed(2) + ' m/s';
+    clock.textContent = f.t.toFixed(1) + ' s';
+    scrub.value = i;
+  };
+
+  let i = 0, playing = !window.matchMedia('(prefers-reduced-motion: reduce)').matches, last = null;
+  const setPlaying = p => { playing = p; play.textContent = p ? 'Pause' : 'Play'; last = null; if (p) requestAnimationFrame(tick); };
+  const tick = now => {
+    if (!playing) return;
+    if (last !== null) i += (now - last) / 1000 / DT;
+    last = now;
+    if (i > N) i = 0;
+    draw(Math.floor(i));
+    requestAnimationFrame(tick);
+  };
+  play.addEventListener('click', () => setPlaying(!playing));
+  scrub.addEventListener('input', () => { i = +scrub.value; draw(i); });
+  if (!playing) { i = Math.round(13 / DT); }
+  draw(Math.floor(i));
+  setPlaying(playing);
+})();
+</script>

@@ -49,7 +49,7 @@ Therefore:
 
 ## Versioned pose-reference format for new data
 
-The new numerical utilities in `methods/omtrack_vla/ridgeback/waypoint_data.py` require:
+The new numerical utilities in `methods/omtrack_vla/deploy/waypoint_data.py` require:
 
 - Poses `timestamp_s`, `x_m`, `y_m`, `yaw_rad` in one verified planar world frame.
 - Metres and radians; body x forward, y left, positive yaw counterclockwise.

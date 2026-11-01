@@ -5,9 +5,9 @@ from pathlib import Path
 import time
 
 from robot.topics import CAMERA_TOPIC
-from methods.omtrack_vla.ridgeback.defaults import MODEL_PORT
+from methods.omtrack_vla.deploy.defaults import MODEL_PORT
 from robot.files import sha256_bytes
-from methods.omtrack_vla.ridgeback.model_client import ModelClient
+from methods.omtrack_vla.deploy.model_client import ModelClient
 from robot.ros_camera import is_jpeg, latest_frame_qos, stamp_ns
 
 

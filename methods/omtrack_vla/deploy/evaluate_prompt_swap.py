@@ -6,7 +6,7 @@ from pathlib import Path
 import time
 
 from robot.files import sha256_file
-from methods.omtrack_vla.ridgeback.model_client import require_fresh_waypoints
+from methods.omtrack_vla.deploy.model_client import require_fresh_waypoints
 
 
 def load_clip(folder):
@@ -63,7 +63,7 @@ def main():
         p.error('Use a new output directory')
     import cv2
     import torch
-    from methods.omtrack_vla.ridgeback.inference_server import OmTrackInference
+    from methods.omtrack_vla.deploy.inference_server import OmTrackInference
     frames = []
     for row in manifest['samples']:
         frame = cv2.imread(str(a.clip / row['image']))

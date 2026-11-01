@@ -7,4 +7,4 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export PYTHONPATH="$project:${PYTHONPATH:-}"
-exec /usr/bin/python3 -u -m methods.omtrack_vla.ridgeback.live_omtrack_preview "$@"
+exec /usr/bin/python3 -u -m methods.omtrack_vla.deploy.live_omtrack_preview "$@"

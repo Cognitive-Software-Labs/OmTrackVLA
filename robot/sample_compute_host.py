@@ -22,7 +22,7 @@ def main():
             if not path.name.isdigit():continue
             try:
                 command=(path/'cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')
-                if any(name in command for name in ('inference_server.py','benchmark_omtrack_only.py','benchmark_native_modes.py','methods.omtrack_vla.ridgeback.live_omtrack_preview')):
+                if any(name in command for name in ('inference_server.py','benchmark_omtrack_only.py','benchmark_native_modes.py','methods.omtrack_vla.deploy.live_omtrack_preview')):
                     fields=(path/'statm').read_text().split()
                     processes.append({'pid':int(path.name),'rss_bytes':int(fields[1])*os.sysconf('SC_PAGE_SIZE')})
             except (OSError,ValueError,IndexError):pass

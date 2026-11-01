@@ -25,7 +25,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[3]  # repository root
 sys.path.insert(0, str(PROJECT_DIR))
 
 from robot.protocol import receive_message, send_message
-from methods.omtrack_vla.ridgeback.defaults import MODEL_PORT
+from methods.omtrack_vla.deploy.defaults import MODEL_PORT
 from robot.perf_log import PerfLog, timed
 
 
@@ -96,7 +96,7 @@ class OmTrackInference:
             self.vision = VisionFeatureCacher(vision_config).eval()
             self.pool_fine_coarse = pool_fine_coarse
         if mode in ("full", "perception"):
-            from methods.omtrack_vla.ridgeback.grounding import TargetPerception
+            from methods.omtrack_vla.deploy.grounding import TargetPerception
             self.target_perception = TargetPerception(
                 project_dir,
                 device=device,
@@ -259,7 +259,7 @@ class OmTrackInference:
                                     len(command) == 3 and all(math.isfinite(value) for value in command))
                 trajectory_reason = "finite_model_trajectory" if trajectory_valid else "invalid_model_trajectory"
             else:
-                from methods.omtrack_vla.ridgeback.grounding import trajectory_is_directionally_consistent
+                from methods.omtrack_vla.deploy.grounding import trajectory_is_directionally_consistent
                 trajectory_valid, trajectory_reason = trajectory_is_directionally_consistent(
                     target.bbox, rgb.shape[1], trajectory_cpu,
                 )

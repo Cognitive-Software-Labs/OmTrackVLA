@@ -21,7 +21,7 @@ def main():
     import cv2
     import numpy as np
     import torch
-    from methods.omtrack_vla.ridgeback.inference_server import OmTrackInference
+    from methods.omtrack_vla.deploy.inference_server import OmTrackInference
     torch.set_num_threads(4)
     if a.image:
         frame=cv2.imread(str(a.image))

@@ -17,4 +17,4 @@ jobs:
       - name: Syntax
         run: |
           python -m compileall -q leader_follow robot tests methods
-          bash -n setup.sh methods/omtrack_vla/run_local.sh methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh methods/omtrack_vla/ridgeback/start_omtrack_preview.sh
+          bash -n setup.sh methods/omtrack_vla/run_local.sh methods/omtrack_vla/deploy/start_omtrack_ridgeback.sh methods/omtrack_vla/deploy/start_omtrack_preview.sh

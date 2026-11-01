@@ -6,7 +6,7 @@ import signal
 import subprocess
 import sys
 
-from methods.omtrack_vla.ridgeback.defaults import BENCHMARK_PORT
+from methods.omtrack_vla.deploy.defaults import BENCHMARK_PORT
 from robot.files import require_new_path
 
 ROOT = Path(__file__).resolve().parents[3]  # repository root
@@ -29,7 +29,7 @@ env = dict(os.environ, OMP_NUM_THREADS='4', OPENBLAS_NUM_THREADS='1',
            HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
 env['PYTHONPATH'] = root
 commands = {
-    'server': [REMOTE_PYTHON, '-u', root + '/methods/omtrack_vla/ridgeback/inference_server.py',
+    'server': [REMOTE_PYTHON, '-u', root + '/methods/omtrack_vla/deploy/inference_server.py',
                '--host', HOST, '--allowed-client', CLIENT, '--port', str(BENCHMARK_PORT),
                '--assets', root, '--mode', 'model_only',
                '--planner-rate', '1000000000', '--legacy-vision-preprocess'],
@@ -121,7 +121,7 @@ def main():
         reply = run_python(start)
         started = True
         print('Started owned Thor model-only server: ' + reply.stdout, flush=True)
-        command = [sys.executable, '-u', str(ROOT / 'methods/omtrack_vla/ridgeback/benchmark_omtrack_only.py'), 'socket',
+        command = [sys.executable, '-u', str(ROOT / 'methods/omtrack_vla/deploy/benchmark_omtrack_only.py'), 'socket',
                    '--host', a.thor, '--source-address', a.source, '--output', str(a.output)]
         child = subprocess.Popen(command, cwd=ROOT, start_new_session=True)
         try:

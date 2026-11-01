@@ -21,6 +21,6 @@ with socket.socket() as s:
 r=subprocess.run(['nvidia-smi','--query-compute-apps=pid,process_name','--format=csv,noheader'],capture_output=True,text=True,check=True)
 if r.stdout.strip():raise SystemExit('GPU compute jobs already running; inspect before launching:\n'+r.stdout)
 PY
-exec "$runtime" -u methods/omtrack_vla/ridgeback/inference_server.py \
+exec "$runtime" -u methods/omtrack_vla/deploy/inference_server.py \
     --host 127.0.0.1 --allowed-client 127.0.0.1 --port "$port" \
     --assets "${OMTRACK_ASSETS:-$project}" --mode model_only --device cuda --planner-rate 2 --legacy-vision-preprocess

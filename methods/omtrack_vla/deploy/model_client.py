@@ -3,7 +3,7 @@ import base64
 import math
 import socket
 
-from methods.omtrack_vla.ridgeback.defaults import MODEL_PORT
+from methods.omtrack_vla.deploy.defaults import MODEL_PORT
 from robot.protocol import receive_message, send_message
 
 

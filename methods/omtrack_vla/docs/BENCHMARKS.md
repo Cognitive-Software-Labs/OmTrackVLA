@@ -55,7 +55,7 @@ Download the same model revisions there. The helper does not install or modify
 other projects. Set all deployment addresses/paths explicitly:
 
 ```bash
-PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.run_remote_omtrack_case \
+PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.deploy.run_remote_omtrack_case \
   --source LOCAL_WIRED_IPV4 --thor REMOTE_IPV4 --remote-user USER \
   --remote-root /absolute/path/OmTrackVLA \
   --remote-python /absolute/path/OmTrackVLA/.venv/bin/python \

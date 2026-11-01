@@ -10,22 +10,22 @@ import socket
 import sys
 import time
 
-from methods.omtrack_vla.ridgeback.defaults import DEFAULT_PROMPT
+from methods.omtrack_vla.deploy.defaults import DEFAULT_PROMPT
 from robot.files import sha256_bytes, sha256_file
 from robot.latency import percentiles
-from methods.omtrack_vla.ridgeback.model_client import load_image_for_model
+from methods.omtrack_vla.deploy.model_client import load_image_for_model
 from robot.owned_processes import GPU_MONITOR, OwnedProcesses, require_idle_gpu
 
 ROOT = Path(__file__).resolve().parents[3]  # repository root
 
 SOURCE_FILES = [
-    'methods/omtrack_vla/ridgeback/grounding.py',
+    'methods/omtrack_vla/deploy/grounding.py',
     'leader_follow/perception/camera_people.py',
     'leader_follow/identity/lock_on.py',
-    'methods/omtrack_vla/ridgeback/inference_server.py',
+    'methods/omtrack_vla/deploy/inference_server.py',
     'methods/omtrack_vla/vision.py',
-    'methods/omtrack_vla/ridgeback/benchmark_native_modes.py',
-    'methods/omtrack_vla/ridgeback/model_client.py',
+    'methods/omtrack_vla/deploy/benchmark_native_modes.py',
+    'methods/omtrack_vla/deploy/model_client.py',
 ]
 VLA_MODEL_NAMES = (
     'OmTrackVLA-0.6B',
@@ -50,7 +50,7 @@ def main():
     import numpy as np
     import torch
     import transformers
-    from methods.omtrack_vla.ridgeback.inference_server import OmTrackInference
+    from methods.omtrack_vla.deploy.inference_server import OmTrackInference
     import ultralytics
     torch.set_num_threads(4)
 

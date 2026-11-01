@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from PIL import Image
-from methods.omtrack_vla.ridgeback.waypoint_data import (MissingReferenceCoverage, prepare_pose_session, relative_waypoints,
+from methods.omtrack_vla.deploy.waypoint_data import (MissingReferenceCoverage, prepare_pose_session, relative_waypoints,
                                       validate_training_example)
 
 

@@ -9,19 +9,19 @@ import socket
 import sys
 import time
 
-from methods.omtrack_vla.ridgeback.defaults import BENCHMARK_PORT, DEFAULT_PROMPT
+from methods.omtrack_vla.deploy.defaults import BENCHMARK_PORT, DEFAULT_PROMPT
 from robot.files import sha256_bytes, sha256_file
 from robot.latency import percentiles
-from methods.omtrack_vla.ridgeback.model_client import ModelClient, load_image_for_model
+from methods.omtrack_vla.deploy.model_client import ModelClient, load_image_for_model
 from robot.owned_processes import GPU_MONITOR, OwnedProcesses, require_idle_gpu
 
 ROOT = Path(__file__).resolve().parents[3]  # repository root
 
 SOURCE_FILES = [
-    'methods/omtrack_vla/ridgeback/benchmark_omtrack_only.py',
-    'methods/omtrack_vla/ridgeback/inference_server.py',
+    'methods/omtrack_vla/deploy/benchmark_omtrack_only.py',
+    'methods/omtrack_vla/deploy/inference_server.py',
     'robot/protocol.py',
-    'methods/omtrack_vla/ridgeback/model_client.py',
+    'methods/omtrack_vla/deploy/model_client.py',
     'methods/omtrack_vla/vision.py',
     'methods/omtrack_vla/hf/modeling.py',
     'methods/omtrack_vla/model.py',
@@ -123,7 +123,7 @@ def main():
 
         began = time.perf_counter()
         if a.mode == 'direct':
-            from methods.omtrack_vla.ridgeback.inference_server import OmTrackInference
+            from methods.omtrack_vla.deploy.inference_server import OmTrackInference
             model = OmTrackInference(a.assets, 'cuda', 31, .1, 1, .3, .25, .35, 15, 3, .5,
                                      planner_rate=1e9, cuda_vision_preprocess=False, mode='model_only')
             torch.cuda.synchronize()
@@ -133,7 +133,7 @@ def main():
                 with socket.socket() as probe:
                     probe.bind((a.host, a.port))
                 server = processes.spawn('server', [
-                    sys.executable, '-u', str(ROOT / 'methods/omtrack_vla/ridgeback/inference_server.py'),
+                    sys.executable, '-u', str(ROOT / 'methods/omtrack_vla/deploy/inference_server.py'),
                     '--mode', 'model_only', '--port', str(a.port),
                     '--planner-rate', '1000000000', '--legacy-vision-preprocess'])
             # Retry until the server listens; a launched server that exits ends the wait early.

@@ -14,7 +14,7 @@ RGB image history and a text instruction are encoded by DINOv3/SiGLIP and a
 Qwen-based planner to produce eight robot-relative `[forward, left, yaw]`
 waypoints. The library is this package (`methods.omtrack_vla`): network, training
 data, vision features and the Hugging Face loader. The default live mode runs only this
-neural model. Optional prompt-grounded identity tracking (`ridgeback/grounding.py`)
+neural model. Optional prompt-grounded identity tracking (`deploy/grounding.py`)
 reuses the system's camera tracker and leader lock and is separate from the
 original model.
 No DyNAMO component, distance estimator, Nav2 controller or robot movement
@@ -91,13 +91,13 @@ No hardware driver is bundled or automatically started by this repo.
 Terminal 1:
 
 ```bash
-bash methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh
+bash methods/omtrack_vla/deploy/start_omtrack_ridgeback.sh
 ```
 
 Terminal 2, after the model prints `ready`:
 
 ```bash
-bash methods/omtrack_vla/ridgeback/start_omtrack_preview.sh
+bash methods/omtrack_vla/deploy/start_omtrack_preview.sh
 ```
 
 Open **http://127.0.0.1:18881** on Ridgeback. The browser shows timestamp-paired
@@ -107,7 +107,7 @@ loopback port 18781. Camera topic:
 
 ```bash
 # Different namespace/topic or instruction:
-bash methods/omtrack_vla/ridgeback/start_omtrack_preview.sh \
+bash methods/omtrack_vla/deploy/start_omtrack_preview.sh \
   --topic /robot/sensors/camera/color/image/compressed \
   --prompt 'Follow the person wearing a blue jacket.'
 ```
@@ -133,7 +133,7 @@ Create reproducible RGB fixtures from an available video:
 ```bash
 .venv/bin/python methods/omtrack_vla/scripts/prepare_benchmark.py \
   --video methods/omtrack_vla/samples/seed_100/17DRP5sb8fy/4.mp4
-PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.benchmark_omtrack_only direct \
+PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.deploy.benchmark_omtrack_only direct \
   --output outputs/benchmark/local
 ```
 
@@ -150,9 +150,9 @@ These are local integration additions, not requirements for core VLA inference:
 ```bash
 .venv/bin/python -m pip install -r requirements/tracking.txt
 .venv/bin/python methods/omtrack_vla/scripts/download_models.py --tracking
-PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.benchmark_native_modes perception \
+PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.deploy.benchmark_native_modes perception \
   --output outputs/benchmark/perception
-PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.benchmark_native_modes full \
+PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.deploy.benchmark_native_modes full \
   --output outputs/benchmark/full
 ```
 

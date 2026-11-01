@@ -88,7 +88,7 @@ def planner_section(torch, assets, device):
 
 def pipeline_section(torch, assets, device):
     import cv2
-    from methods.omtrack_vla.ridgeback.inference_server import OmTrackInference
+    from methods.omtrack_vla.deploy.inference_server import OmTrackInference
     capture = cv2.VideoCapture(str(SAMPLE_VIDEO))
     frames = []
     while len(frames) < PIPELINE_FRAMES:

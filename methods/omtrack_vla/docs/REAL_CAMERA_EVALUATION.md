@@ -10,7 +10,7 @@ Results are written under ignored `outputs/` so private images stay local.
 Start the local model service in one terminal:
 
 ```bash
-bash methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh
+bash methods/omtrack_vla/deploy/start_omtrack_ridgeback.sh
 ```
 
 After visually confirming the intended camera scene, use a second terminal:
@@ -18,7 +18,7 @@ After visually confirming the intended camera scene, use a second terminal:
 ```bash
 source /opt/ros/jazzy/setup.bash
 export PYTHONPATH="$PWD:${PYTHONPATH:-}"
-/usr/bin/python3 -m methods.omtrack_vla.ridgeback.record_live_model_test \
+/usr/bin/python3 -m methods.omtrack_vla.deploy.record_live_model_test \
   --output outputs/cases/black-shirt-left-001 \
   --prompt 'Follow the person wearing a black T-shirt.' --seconds 25
 ```
@@ -29,11 +29,11 @@ paired model reply. The recorder requests fresh inferences and resets model
 history on the first frame. It never silently overwrites a prior clip. Stop
 the model service with Ctrl-C when recording is done.
 
-For camera-only clips, use `methods.omtrack_vla.ridgeback.record_prompt_clip --output NEW_CLIP_DIR
+For camera-only clips, use `methods.omtrack_vla.deploy.record_prompt_clip --output NEW_CLIP_DIR
 --scene 'what is actually in view'` instead. `--scene` is required: describe
 clothing, positions and movement as observed, not as model labels. To compare
 two instructions on exactly the same saved frames, run
-`methods.omtrack_vla.ridgeback.evaluate_prompt_swap --clip CLIP_DIR --prompt-a TEXT_A --prompt-b
+`methods.omtrack_vla.deploy.evaluate_prompt_swap --clip CLIP_DIR --prompt-a TEXT_A --prompt-b
 TEXT_B --output NEW_OUTPUT_DIR`. It replays A/B/B/A with a fresh run boundary.
 
 Record one matching person, an empty room, a person who does not match the

@@ -30,9 +30,9 @@ robot-relative diagram, not a calibrated image projection or navigation map.
 ## Standalone service and one-image query
 
 ```bash
-PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.inference_server \
+PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.deploy.inference_server \
   --mode model_only --port 18781 --legacy-vision-preprocess
-PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.ridgeback.query_omtrack /path/to/image.jpg \
+PYTHONPATH=. .venv/bin/python -m methods.omtrack_vla.deploy.query_omtrack /path/to/image.jpg \
   --port 18781 --output outputs/query.json
 ```
 

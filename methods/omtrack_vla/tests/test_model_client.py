@@ -6,7 +6,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from methods.omtrack_vla.ridgeback.model_client import ModelClient, has_finite_waypoints, require_fresh_waypoints
+from methods.omtrack_vla.deploy.model_client import ModelClient, has_finite_waypoints, require_fresh_waypoints
 from robot.protocol import receive_message, send_message
 
 POINTS = [[0.1 * i, 0.0, 0.0] for i in range(8)]

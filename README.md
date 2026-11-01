@@ -43,6 +43,7 @@ Nothing in this repository publishes `cmd_vel` yet: the robot does not move.
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md): stages, data contracts, sensors, where methods plug in
 - [ROADMAP.md](docs/ROADMAP.md): phases with their done conditions
 - [EVALUATION.md](docs/EVALUATION.md): scenarios, metrics, ground truth
+- [explainer.html](docs/explainer.html): visual explainer for people (published: https://claude.ai/artifact/6JBiZ5Wusxu4VTkvVNt8vk)
 
 ## Repository map
 

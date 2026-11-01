@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from methods.omtrack_vla.ridgeback.waypoint_data import prepare_pose_session
+from methods.omtrack_vla.deploy.waypoint_data import prepare_pose_session
 
 
 def main():

@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 import time
 
-from methods.omtrack_vla.ridgeback.defaults import DEFAULT_PROMPT, MODEL_PORT
-from methods.omtrack_vla.ridgeback.model_client import ModelClient, encode_jpeg, require_fresh_waypoints
+from methods.omtrack_vla.deploy.defaults import DEFAULT_PROMPT, MODEL_PORT
+from methods.omtrack_vla.deploy.model_client import ModelClient, encode_jpeg, require_fresh_waypoints
 
 
 def main():

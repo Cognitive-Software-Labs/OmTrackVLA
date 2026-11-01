@@ -12,12 +12,12 @@ class RepositoryTests(unittest.TestCase):
         self.assertEqual(len(revisions),5)
         for value in revisions.values():self.assertRegex(value,r'^[0-9a-f]{40}$')
     def test_launcher_has_no_old_checkout_dependency(self):
-        for name in ('methods/omtrack_vla/run_local.sh','methods/omtrack_vla/ridgeback/start_omtrack_ridgeback.sh','methods/omtrack_vla/ridgeback/run_remote_omtrack_case.py'):
+        for name in ('methods/omtrack_vla/run_local.sh','methods/omtrack_vla/deploy/start_omtrack_ridgeback.sh','methods/omtrack_vla/deploy/run_remote_omtrack_case.py'):
             text=(ROOT/name).read_text()
             self.assertNotIn('/home/robot/',text)
             self.assertNotIn('DyNAMO',text.replace('no DyNAMO',''))
     def test_live_preview_has_no_ros_publisher(self):
-        tree=ast.parse((ROOT/'methods/omtrack_vla/ridgeback/live_omtrack_preview.py').read_text())
+        tree=ast.parse((ROOT/'methods/omtrack_vla/deploy/live_omtrack_preview.py').read_text())
         self.assertFalse(any(isinstance(n,ast.Attribute) and n.attr=='create_publisher' for n in ast.walk(tree)))
     def test_repo_imports_point_at_existing_modules(self):
         # Most scripts can't be run here (ROS, GPU), so check statically
